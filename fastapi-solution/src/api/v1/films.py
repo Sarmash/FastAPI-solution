@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from services.filmwork import FilmService, get_film_service
 
@@ -12,7 +12,7 @@ router = APIRouter()
 class Film(BaseModel):
     id: str
     title: str
-    description: str
+    description: str = None
     imdb: float = 0.0
     genre: list = []
     actors: list = []
@@ -41,3 +41,16 @@ async def film_details(
         actors=film.actors,
         writers=film.writers,
     )
+
+
+@router.get("/")
+async def related_films(
+    sort: str = Query(default="-imdb_rating"),
+    page_size: int = Query(default=50),
+    page_number: int = Query(default=1),
+    film_service: FilmService = Depends(get_film_service),
+):
+    films = await film_service._get_related_films(sort)
+    first_number = (page_number - 1) * page_size
+    second_number = first_number + page_size
+    return films[first_number:second_number]

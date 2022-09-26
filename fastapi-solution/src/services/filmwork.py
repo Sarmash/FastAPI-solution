@@ -57,6 +57,18 @@ class FilmService:
             film_work.id, film_work.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS
         )
 
+    async def _get_related_films(self, sort: str):
+        res = await self.elastic.search(
+            index="movies",
+            body={
+                "size": 999,
+                "sort": {"imdb_rating": {"order": "desc"}},
+                "_source": {"includes": ["id", "title", "imdb_rating"]},
+            },
+        )
+        result = [i["_source"] for i in res["hits"]["hits"]]
+        return result
+
 
 @lru_cache()
 def get_film_service(

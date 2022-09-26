@@ -11,7 +11,7 @@ class FilmWork(BaseModel):
     id: str
     title: str
     imdb_rating: float = 0.0
-    description: str
+    description: str = None
     genre: list = []
     actors: list = []
     writers: list = []
