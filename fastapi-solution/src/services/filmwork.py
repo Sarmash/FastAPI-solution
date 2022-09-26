@@ -58,11 +58,16 @@ class FilmService:
         )
 
     async def _get_related_films(self, sort: str):
+        if sort[0] == "-":
+            sort = sort[1:]
+            order = "desc"
+        else:
+            order = "asc"
         res = await self.elastic.search(
             index="movies",
             body={
                 "size": 999,
-                "sort": {"imdb_rating": {"order": "desc"}},
+                "sort": {sort: {"order": order}},
                 "_source": {"includes": ["id", "title", "imdb_rating"]},
             },
         )
