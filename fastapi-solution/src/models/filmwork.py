@@ -1,9 +1,7 @@
-import orjson
-from functions_for_models import orjson_dumps
-from pydantic import BaseModel
+from models.base_model import BasicModel
 
 
-class FilmWork(BaseModel):
+class FilmWork(BasicModel):
     id: str
     title: str
     imdb_rating: float = 0.0
@@ -12,8 +10,3 @@ class FilmWork(BaseModel):
     actors: list = []
     writers: list = []
     directors: list = []
-
-    class Config:
-        # Заменяем стандартную работу с json на более быструю.
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
