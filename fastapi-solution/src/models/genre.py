@@ -1,17 +1,11 @@
 import orjson
-from functions_for_models import orjson_dumps
+from models.functions_for_models import orjson_dumps
 from pydantic import BaseModel
 
 
-class FilmWork(BaseModel):
+class Genre(BaseModel):
     id: str
-    title: str
-    imdb_rating: float = 0.0
-    description: str = None
-    genre: list = []
-    actors: list = []
-    writers: list = []
-    directors: list = []
+    genre_name: str
 
     class Config:
         # Заменяем стандартную работу с json на более быструю.
