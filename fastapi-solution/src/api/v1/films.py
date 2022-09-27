@@ -50,7 +50,18 @@ async def related_films(
     page_number: int = Query(default=1, gt=0),
     film_service: FilmService = Depends(get_film_service),
 ):
-    films = await film_service._get_related_films(sort)
+    films_list = await film_service._get_info_films()
+    if sort[0] == "-":
+        value = sort[1:]
+        reverse = True
+    else:
+        value = sort
+        reverse = False
+    films = sorted(
+        films_list,
+        key=lambda x: x[value] if isinstance(x[value], float) else 0,
+        reverse=reverse,
+    )
     first_number = (page_number - 1) * page_size
     if first_number >= len(films) or len(films) == 0:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
