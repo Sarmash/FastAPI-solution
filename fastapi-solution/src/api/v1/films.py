@@ -46,8 +46,8 @@ async def film_details(
 @router.get("/")
 async def related_films(
     sort: str = Query(default="-imdb_rating"),
-    page_size: int = Query(default=50, gt=1),
-    page_number: int = Query(default=1, gt=1),
+    page_size: int = Query(default=50, gt=0),
+    page_number: int = Query(default=1, gt=0),
     film_service: FilmService = Depends(get_film_service),
 ):
     films = await film_service._get_related_films(sort)
