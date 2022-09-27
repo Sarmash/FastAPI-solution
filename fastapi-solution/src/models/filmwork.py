@@ -1,13 +1,7 @@
-import orjson
-from pydantic import BaseModel
+from models.base_model import BasicModel
 
 
-def orjson_dumps(v, *, default):
-    # orjson.dumps возвращает bytes, а pydantic требует unicode, поэтому декорируем.
-    return orjson.dumps(v, default=default).decode()
-
-
-class FilmWork(BaseModel):
+class FilmWork(BasicModel):
     id: str
     title: str
     imdb_rating: float = 0.0
@@ -16,8 +10,3 @@ class FilmWork(BaseModel):
     actors: list = []
     writers: list = []
     directors: list = []
-
-    class Config:
-        # Заменяем стандартную работу с json на более быструю.
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
