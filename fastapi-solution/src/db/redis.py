@@ -14,9 +14,14 @@ async def get_redis() -> Redis:
 
 
 def cache(func):
-    """Декоратор для кеширования в редис, ключ - URL запроса,
-    для корректной работы декоратора в параметрах функции ендпоинта,
-    должен быть fastapi Request"""
+    """Декоратор для кеширования в редис, ключ - URL запроса.
+    Для корректной работы декоратора в параметрах функции ендпоинта,
+    должен быть fastapi Request
+
+    def endpoint(some_parameters, request: Request)
+        some logic
+        return some_result
+    """
 
     @wraps(func)
     async def inner(**kwargs):
