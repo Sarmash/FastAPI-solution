@@ -11,9 +11,10 @@ router = APIRouter()
 async def film_details(genre_service: GenreService = Depends(get_genre_service),
                        page: int = Query(default=1),
                        page_size: int = Query(default=50)) -> list[Genre]:
-    """Эндпоинт - /api/v1/genres/ - возвращающий список жанров"""
+    """Эндпоинт - /api/v1/genres/ - возвращающий список жанров постранично
+    - /api/v1/genres/?page=1&page_size=10 - для запроса по кол-ву жанров и странице"""
 
-    list_genres = await genre_service.get_genres(page, page_size)
+    list_genres = await genre_service.get_genres(page_size, page)
 
     if not list_genres:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='page not found')
