@@ -4,7 +4,6 @@ from typing import Optional
 
 from aioredis import Redis
 from core.config import FILM_CACHE_EXPIRE_IN_SECONDS
-from models.base_model import BasicModel
 
 redis: Optional[Redis] = None
 
