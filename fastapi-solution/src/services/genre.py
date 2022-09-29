@@ -3,7 +3,7 @@ from functools import lru_cache
 from aioredis import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch, helpers
+from elasticsearch import AsyncElasticsearch, helpers, NotFoundError
 from fastapi import Depends
 from models.genre import Genre
 from services.service_base import Service
@@ -30,6 +30,16 @@ class GenreService(Service):
                 if len(page) == page_size:
                     return page
         return page
+    
+    async def get_by_id(self, genre_id: str) -> Genre:
+        """Запро с elasticsearch для получения информации по id жанра"""
+        
+        try:
+            raw_genre = await self.elastic.get(self.INDEX, genre_id)
+        except NotFoundError:
+            return
+        return Genre(id=raw_genre['_source']['id'],
+                     genre_name=raw_genre['_source']['genre'])
 
 
 @lru_cache()

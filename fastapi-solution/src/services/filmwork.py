@@ -4,7 +4,7 @@ from typing import Optional
 from aioredis import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
 from fastapi import Depends
 from models.filmwork import FilmWork
 
@@ -58,21 +58,16 @@ class FilmService:
         )
 
     async def get_info_films(self, sort: str) -> list:
-        if sort[0] == "-":
-            sort = sort[1:]
-            order = "desc"
-        else:
-            order = "asc"
-        res = await self.elastic.search(
+        film_list = []
+        async for doc in helpers.async_scan(
+            client=self.elastic,
+            query={"_source": {"includes": ["id", "title", "imdb_rating"]}},
             index="movies",
-            body={
-                "size": 999,
-                "sort": {sort: {"order": order}},
-                "_source": {"includes": ["id", "title", "imdb_rating"]},
-            },
-        )
-        result = [i["_source"] for i in res["hits"]["hits"]]
-        return result
+            scroll="5m",
+            size=100,
+        ):
+            film_list.append(doc["_source"])
+        return film_list
 
 
 @lru_cache()
