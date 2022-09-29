@@ -30,10 +30,10 @@ class GenreService(Service):
                 if len(page) == page_size:
                     return page
         return page
-    
+
     async def get_by_id(self, genre_id: str) -> Genre:
         """Запро с elasticsearch для получения информации по id жанра"""
-        
+
         try:
             raw_genre = await self.elastic.get(self.INDEX, genre_id)
         except NotFoundError:
