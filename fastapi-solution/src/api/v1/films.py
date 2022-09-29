@@ -50,7 +50,7 @@ async def related_films(
     page_number: int = Query(default=1, gt=0),
     film_service: FilmService = Depends(get_film_service),
 ):
-    films_list = await film_service._get_info_films()
+    films_list = await film_service.get_info_films()
     if sort[0] == "-":
         value = sort[1:]
         reverse = True
