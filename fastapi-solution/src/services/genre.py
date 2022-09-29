@@ -32,10 +32,6 @@ class GenreService(Service):
                 page.append(Genre(id=doc['_source']['id'], genre_name=doc['_source']['genre']))
                 if len(page) == page_size:
                     return page
-
-        if len(page) > 0:
-            return page
-
         return page
 
 
