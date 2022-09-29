@@ -25,8 +25,8 @@ def cache(func):
 
     @wraps(func)
     async def inner(**kwargs):
-        request = str(kwargs['request'].url)
-        redis_client = kwargs['film_service'].redis
+        request = str(kwargs["request"].url)
+        redis_client = kwargs["film_service"].redis
 
         data = await redis_client.get(request)
         if data is not None:
@@ -39,9 +39,9 @@ def cache(func):
         else:
             result_for_cache = json.dumps(result_for_cache)
 
-        await redis_client.set(key=request,
-                               value=result_for_cache,
-                               expire=FILM_CACHE_EXPIRE_IN_SECONDS)
+        await redis_client.set(
+            key=request, value=result_for_cache, expire=FILM_CACHE_EXPIRE_IN_SECONDS
+        )
         return result
 
     return inner
