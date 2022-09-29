@@ -17,9 +17,6 @@ class GenreService(Service):
     async def get_genres(self, page_size: int, page_query: int) -> list[Genre]:
         """Запрос к elasticsearch на получение списка жанров по заданной странице"""
 
-        if page_query <= 0:
-            page_query = 1
-
         page = []
         item_counter = 0
 

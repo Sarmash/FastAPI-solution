@@ -57,7 +57,7 @@ class FilmService:
             film_work.id, film_work.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS
         )
 
-    async def _get_related_films(self, sort: str) -> list:
+    async def get_info_films(self, sort: str) -> list:
         if sort[0] == "-":
             sort = sort[1:]
             order = "desc"
