@@ -17,7 +17,6 @@ def cache(func):
     """Декоратор для кеширования в редис, ключ - URL запроса.
     Для корректной работы декоратора в параметрах функции ендпоинта,
     должен быть fastapi Request
-
     def endpoint(some_parameters, request: Request)
         some logic
         return some_result
@@ -49,4 +48,4 @@ def cache(func):
         )
         return result
 
-    return
+    return inner
