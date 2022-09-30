@@ -7,7 +7,7 @@ from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
 from fastapi import Depends
 from models.filmwork import FilmWork, FilmWorkOut
-from services.service_base import Service
+from services.service_base import Service, pagination
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -42,35 +42,44 @@ class FilmService(Service):
             film_work.id, film_work.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS
         )
 
-    async def get_info_films(self) -> list:
-        film_list = []
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            index="movies",
-            scroll="5m",
-            size=100,
-        ):
-            film_list.append(FilmWorkOut(**doc["_source"]))
-        return film_list
-
-    async def search_films(self, query):
-        film_list = []
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            query={
+    async def get_info_films(
+        self, sort=None, query=None, page_size: int = None, page_number: int = None
+    ) -> list:
+        films_list = []
+        if query is None:
+            body = {
+                "_source": {"includes": ["id", "title", "imdb_rating"]},
+            }
+        else:
+            body = {
                 "_source": {"includes": ["id", "title", "imdb_rating"]},
                 "query": {
-                    "query_string": {
-                        "query": query,
-                    }
+                    "query_string": {"query": query},
                 },
-            },
+            }
+        async for doc in helpers.async_scan(
+            client=self.elastic,
+            query=body,
             index="movies",
             scroll="5m",
             size=100,
         ):
-            film_list.append(FilmWorkOut(**doc["_source"]))
-        return film_list
+            films_list.append(FilmWorkOut(**doc["_source"]))
+
+        if sort:
+            value = sort[1:] if sort[0] == "-" else sort
+            reverse = True if value == sort[1:] else False
+            films_list = sorted(
+                films_list,
+                key=lambda x: x.__dict__[value]
+                if isinstance(x.__dict__[value], float)
+                else 0,
+                reverse=reverse,
+            )
+
+        films = await pagination(films_list, page_size, page_number)
+
+        return films
 
 
 @lru_cache()
