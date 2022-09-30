@@ -4,6 +4,7 @@ from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from models.genre import Genre
 from services.genre import GenreService, get_genre_service
+from db.redis import cache
 
 router = APIRouter()
 
