@@ -22,7 +22,6 @@ class PersonService(Service):
         async for doc in helpers.async_scan(
             client=self.elastic,
             index=self.index,
-            scroll='5m',
         ):
             item_counter += 1
             if item_counter >= page_query * page_size - page_size:
