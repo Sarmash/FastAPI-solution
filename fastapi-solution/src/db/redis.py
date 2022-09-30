@@ -31,7 +31,10 @@ def cache(func):
         data = await redis_client.get(request)
         if data is not None:
             data_from_redis = json.loads(data)
-            data_for_return = [json.loads(model) for model in data_from_redis]
+            if isinstance(data_from_redis, list):
+                data_for_return = [json.loads(model) for model in data_from_redis]
+            else:
+                data_for_return = json.loads(data)
             return data_for_return
 
         result_for_cache = result = await func(**kwargs)
