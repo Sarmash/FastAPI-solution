@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Union
 
 from aioredis import Redis
 from db.elastic import get_elastic
@@ -14,7 +15,7 @@ class GenreService(Service):
 
     INDEX = "genres"
 
-    async def get_genres(self, page_size: int, page_query: int) -> list[Genre]:
+    async def get_genres(self, page_size: int, page_query: int) -> list:
         """Запрос к elasticsearch на получение списка жанров по заданной странице"""
 
         page = []
@@ -33,7 +34,7 @@ class GenreService(Service):
                     return page
         return page
 
-    async def get_by_id(self, genre_id: str) -> Genre:
+    async def get_by_id(self, genre_id: str) -> Union[Genre, None]:
         """Запро с elasticsearch для получения информации по id жанра"""
 
         try:
