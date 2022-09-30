@@ -56,7 +56,7 @@ class FilmService(Service):
         async for doc in helpers.async_scan(
             client=self.elastic,
             query=body,
-            index="movies",
+            index=self.INDEX,
             scroll="5m",
             size=100,
         ):

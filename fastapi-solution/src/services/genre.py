@@ -18,21 +18,18 @@ class GenreService(Service):
     async def get_genres(self, page_size: int, page_query: int) -> list:
         """Запрос к elasticsearch на получение списка жанров по заданной странице"""
 
-        page = []
-        item_counter = 0
+        genre_list = []
 
         async for doc in helpers.async_scan(
             client=self.elastic,
             index=self.INDEX,
+            scroll="5m",
+            size=100,
         ):
-            item_counter += 1
-            if item_counter >= page_query * page_size - page_size:
-                page.append(
-                    Genre(id=doc["_source"]["id"], genre_name=doc["_source"]["genre"])
-                )
-                if len(page) == page_size:
-                    return page
-        return page
+            genre_list.append(Genre(**doc["_source"]))
+
+        genres = await self.pagination(genre_list, page_size, page_query)
+        return genres
 
     async def get_by_id(self, genre_id: str) -> Optional[Genre]:
         """Запрос elasticsearch для получения информации по id жанра"""
@@ -41,9 +38,7 @@ class GenreService(Service):
             raw_genre = await self.elastic.get(self.INDEX, genre_id)
         except NotFoundError:
             return
-        return Genre(
-            id=raw_genre["_source"]["id"], genre_name=raw_genre["_source"]["genre"]
-        )
+        return Genre(**raw_genre["_source"])
 
 
 @lru_cache()
