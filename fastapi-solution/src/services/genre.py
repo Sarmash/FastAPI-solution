@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Union
+from typing import Optional
 
 from aioredis import Redis
 from db.elastic import get_elastic
@@ -34,8 +34,8 @@ class GenreService(Service):
                     return page
         return page
 
-    async def get_by_id(self, genre_id: str) -> Union[Genre, None]:
-        """Запро с elasticsearch для получения информации по id жанра"""
+    async def get_by_id(self, genre_id: str) -> Optional[Genre]:
+        """Запрос elasticsearch для получения информации по id жанра"""
 
         try:
             raw_genre = await self.elastic.get(self.INDEX, genre_id)
