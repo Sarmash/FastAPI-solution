@@ -12,10 +12,11 @@ class Service:
         self.redis = redis
         self.elastic = elastic
 
-
-async def pagination(films: list, page_size: int, page_number: int) -> list:
-    first_number = (page_number - 1) * page_size
-    if first_number >= len(films) or len(films) == 0:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
-    second_number = first_number + page_size
-    return films[first_number:second_number]
+    async def pagination(self, films: list, page_size: int, page_number: int) -> list:
+        first_number = (page_number - 1) * page_size
+        if first_number >= len(films) or len(films) == 0:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail="page not found"
+            )
+        second_number = first_number + page_size
+        return films[first_number:second_number]

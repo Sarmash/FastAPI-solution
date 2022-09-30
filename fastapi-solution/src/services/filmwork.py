@@ -7,7 +7,7 @@ from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
 from fastapi import Depends
 from models.filmwork import FilmWork, FilmWorkOut
-from services.service_base import Service, pagination
+from services.service_base import Service
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -77,7 +77,7 @@ class FilmService(Service):
                 reverse=reverse,
             )
 
-        films = await pagination(films_list, page_size, page_number)
+        films = await self.pagination(films_list, page_size, page_number)
 
         return films
 
