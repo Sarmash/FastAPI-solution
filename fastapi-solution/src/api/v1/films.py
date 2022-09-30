@@ -43,7 +43,8 @@ async def related_films(
         genre = await genre_service.get_by_id(genre)
         if not genre:
             raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND, detail="film not found"
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="no film with this genre was found",
             )
 
     films = await service.get_info_films(

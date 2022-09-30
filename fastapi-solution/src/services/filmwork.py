@@ -14,7 +14,7 @@ FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
 class FilmService(Service):
     INDEX = "movies"
-    INDEX_SIMILAR = "genres"
+    INDEX_SIMILAR = "genre"
 
     async def get_by_id(self, film_id: str) -> Optional[FilmWork]:
         try:
@@ -41,7 +41,9 @@ class FilmService(Service):
         elif query is None and genre:
             body = {
                 "_source": {"includes": ["id", "title", "imdb_rating"]},
-                "query": {"bool": {"filter": {"term": {"genre": genre.genre_name}}}},
+                "query": {
+                    "bool": {"filter": {"term": {self.INDEX_SIMILAR: genre.genre_name}}}
+                },
             }
         else:
             body = {
