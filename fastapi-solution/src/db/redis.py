@@ -26,18 +26,20 @@ def cache(func):
     @wraps(func)
     async def inner(**kwargs):
         request = str(kwargs['request'].url)
-        redis_client = kwargs['film_service'].redis
+        redis_client = kwargs['service'].redis
 
         data = await redis_client.get(request)
         if data is not None:
-            return json.loads(data)
+            data_from_redis = json.loads(data)
+            data_for_return = [json.loads(model) for model in data_from_redis]
+            return data_for_return
 
         result_for_cache = result = await func(**kwargs)
 
         if isinstance(result, list) is not True:
             result_for_cache = result.json()
         else:
-            result_for_cache = json.dumps(result_for_cache)
+            result_for_cache = json.dumps([model.json() for model in result_for_cache])
 
         await redis_client.set(key=request,
                                value=result_for_cache,
