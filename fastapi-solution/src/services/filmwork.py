@@ -13,42 +13,35 @@ FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
 
 class FilmService(Service):
-    async def get_by_id(self, film_id: str) -> Optional[FilmWork]:
-        film_work = await self._film_from_cache(film_id)
-        if not film_work:
-            film_work = await self._get_film_from_elastic(film_id)
-            if not film_work:
-                return None
-            await self._put_film_to_cache(film_work)
-        return film_work
+    INDEX = "movies"
+    INDEX_SIMILAR = "genres"
 
-    async def _get_film_from_elastic(self, film_id: str) -> Optional[FilmWork]:
+    async def get_by_id(self, film_id: str) -> Optional[FilmWork]:
         try:
-            doc = await self.elastic.get("movies", film_id)
+            doc = await self.elastic.get(self.INDEX, film_id)
         except NotFoundError:
             return None
         return FilmWork(**doc["_source"])
 
-    async def _film_from_cache(self, film_id: str) -> Optional[FilmWork]:
-        data = await self.redis.get(film_id)
-        if not data:
-            return None
-
-        film_work = FilmWork.parse_raw(data)
-        return film_work
-
-    async def _put_film_to_cache(self, film_work: FilmWork):
-        await self.redis.set(
-            film_work.id, film_work.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS
-        )
-
     async def get_info_films(
-        self, sort=None, query=None, page_size: int = None, page_number: int = None
+        self,
+        sort=None,
+        genre=None,
+        query=None,
+        page_size: int = None,
+        page_number: int = None,
     ) -> list:
+
         films_list = []
-        if query is None:
+
+        if query is None and genre is None:
             body = {
                 "_source": {"includes": ["id", "title", "imdb_rating"]},
+            }
+        elif query is None and genre:
+            body = {
+                "_source": {"includes": ["id", "title", "imdb_rating"]},
+                "query": {"bool": {"filter": {"term": {"genre": genre.genre_name}}}},
             }
         else:
             body = {
@@ -57,6 +50,7 @@ class FilmService(Service):
                     "query_string": {"query": query},
                 },
             }
+
         async for doc in helpers.async_scan(
             client=self.elastic,
             query=body,
