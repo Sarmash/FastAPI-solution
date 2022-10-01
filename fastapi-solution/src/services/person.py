@@ -83,7 +83,8 @@ class PersonService(Service):
                     return persons_list
         return persons_list
 
-    async def person_films(self, person_id: str, page_size: int, page: int):
+    async def person_films(self, person_id: str):
+        person = await self.elastic.get(self.index_person, person_id)
         person_films = []
         list_role = ["actors", "writers"]
         for role in list_role:
@@ -95,7 +96,7 @@ class PersonService(Service):
                         "query": {
                             "bool": {
                                 "must": [
-                                    {"match": {f"{role}.id": person_id}},
+                                    {"match": {f"{role}.id": person["_source"]["id"]}},
                                 ]
                             }
                         },
@@ -107,20 +108,22 @@ class PersonService(Service):
             ):
                 person_films.append(FilmWorkOut(**doc["_source"]))
 
-            person = await self.elastic.get(self.index_person, person_id)
+        body = {
+            "_source": {"includes": ["id", "title", "imdb_rating"]},
+            "query": {
+                "match": {"director": person["_source"]["full_name"]},
+            },
+        }
 
-            body = {
-                "_source": {"includes": ["id", "title", "imdb_rating"]},
-                "query": {
-                    "match": {"director": person},
-                },
-            }
-
-            async for doc in helpers.async_scan(
-                client=self.elastic,
-                query=body,
-                index=self.index_films,
-            ):
+        async for doc in helpers.async_scan(
+            client=self.elastic,
+            query=body,
+            index=self.index_films,
+        ):
+            for film in person_films:
+                if film.title == doc["_source"]["title"]:
+                    break
+            else:
                 person_films.append(FilmWorkOut(**doc["_source"]))
 
         return person_films

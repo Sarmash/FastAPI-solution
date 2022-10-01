@@ -8,16 +8,13 @@ from services.person import PersonService, get_person_service
 router = APIRouter()
 
 
-@router.get("/{person_id}/film")
+@router.get("/{person_id}/film/")
 async def person_list(
-    query: str = Query(
-        default="bccbbbb6-be40-44f5-a025-204bcfcf2667", description="Persons id"
-    ),
+    person_id: str,
     service: PersonService = Depends(get_person_service),
-    page: int = Query(default=1, gt=0),
-    page_size: int = Query(default=50, gt=0),
 ) -> list:
-    list_person = await service.person_films(query, page_size, page)
+    print(person_id)
+    list_person = await service.person_films(person_id)
     if not list_person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
     return list_person
