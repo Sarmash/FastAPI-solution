@@ -17,26 +17,7 @@ class PersonService(Service):
 
     async def get_person_film_list(self,
                                    person_id: str) -> Optional[PersonFilmWork]:
-        try:
-            person = await self.elastic.get(
-                self.index_person,
-                person_id,
-            )
-            full_name = person['_source']['full_name']
-            filmwork = []
-            async for doc in helpers.async_scan(
-                    client=self.elastic,
-                    index=self.index_person,
-                    query={"query": {"match": {"acro": full_name}}},
-            ):
-                filmwork.append(
-                    Person(id=doc['_source']['id'],
-                           full_name=doc['_source']['full_name'])
-                )
-                return filmwork
-            return filmwork
-        except NotFoundError:
-            return
+        pass
 
     async def get_person_detail(self, person_id: str,
                                 role: str) -> Optional[Person]:
@@ -70,8 +51,8 @@ class PersonService(Service):
     async def search_person(self, query: str, role: str, page_size: int,
                             page_query: int) -> list:
         film_list = []
-        persons = []
         item_counter = 0
+        persons_list = []
         async for doc in helpers.async_scan(
                 client=self.elastic,
                 query={"_source": {"includes": ["title", role]}},
@@ -85,16 +66,21 @@ class PersonService(Service):
         ):
             item_counter += 1
             if item_counter >= page_query * page_size - page_size:
-                persons.append(PersonOut(**doc["_source"], role=role, film_ids=[]))
+                persons_list.append(PersonOut(
+                    id=doc['_source']['id'],
+                    full_name=doc['_source']['full_name'],
+                    role=role,
+                    film_ids=[])
+                )
                 for film in film_list:
-                    for actor in film['actors']:
-                        for person in persons:
-                            if actor['id'] == person.id:
+                    for item in film[role]:
+                        for person in persons_list:
+                            if item['id'] == person.id:
                                 person.film_ids.append(film['title'])
                                 break
-                if len(persons) == page_size:
-                    return persons
-            return persons
+                if len(persons_list) == page_size:
+                    return persons_list
+        return persons_list
 
 
 @lru_cache()

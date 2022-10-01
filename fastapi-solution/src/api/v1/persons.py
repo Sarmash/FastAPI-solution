@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from models.person import Person
+from models.person import Person, PersonFilmWork, PersonOut
 from services.person import PersonService, get_person_service
 
 router = APIRouter()
@@ -11,13 +11,13 @@ router = APIRouter()
 @router.get('/{person_id}/film')
 @cache
 async def person_list(
-        request: Request,
-        person_id: str,
+        query: str,
+        role: str = Query(default='actors'),
         service: PersonService = Depends(get_person_service),
         page: int = Query(default=1, gt=0),
         page_size: int = Query(default=50, gt=0)
 ) -> list[Person]:
-    list_person = await service.get_person_list(person_id, page_size, page)
+    list_person = await service.search_person(query, role, page_size, page)
     if not list_person:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
@@ -27,13 +27,13 @@ async def person_list(
 
 
 @router.get('/search/')
-async def person_info(
+async def search_person(
         query: str,
         role: str = Query(default='actors'),
         service: PersonService = Depends(get_person_service),
         page: int = Query(default=1, gt=0),
         page_size: int = Query(default=50, gt=0)
-) -> list[Person]:
+) -> list[PersonOut]:
     list_person = await service.search_person(query, role, page_size, page)
     if not list_person:
         raise HTTPException(
