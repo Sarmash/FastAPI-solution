@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from models.person import Person, PersonFilmWork, PersonOut
+from models.person import Person, PersonOut
 from services.person import PersonService, get_person_service
 
 router = APIRouter()
