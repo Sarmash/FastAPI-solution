@@ -1,4 +1,4 @@
-from dataclasses import Field
+from typing import Optional
 
 from models.base_model import BasicModel
 
@@ -18,4 +18,4 @@ class PersonOut(BasicModel):
     id: str
     full_name: str
     role: str
-    film_ids: list = Field(default_factory=[])
+    film_ids: Optional[list[str]] = []

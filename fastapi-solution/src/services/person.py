@@ -85,7 +85,7 @@ class PersonService(Service):
             film_list.append(doc["_source"])
         async for doc in helpers.async_scan(
                 client=self.elastic,
-                index=self.index,
+                index=self.index_person,
         ):
             persons.append(PersonOut(**doc["_source"], role=role, film_ids=[]))
         for film in film_list:
