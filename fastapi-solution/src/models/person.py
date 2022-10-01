@@ -1,8 +1,4 @@
-from uuid import UUID
-
 from models.base_model import BasicModel
-
-from typing import Optional
 
 
 class Person(BasicModel):
