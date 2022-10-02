@@ -31,7 +31,6 @@ async def person_film_list(
 @router.get('/search/')
 async def search_person(
         query: str,
-        role: str = Query(default='actors'),
         service: PersonService = Depends(get_person_service),
         page: int = Query(default=1, gt=0),
         page_size: int = Query(default=50, gt=0)
@@ -43,7 +42,7 @@ async def search_person(
     role=... для указания с какой ролью этой персоны делать запрос,
     page=1&page_size=10 - для выбора страницы и количества записей на странице
     """
-    list_person = await service.search_person(query, role, page_size, page)
+    list_person = await service.search_person(query, page_size, page)
     if not list_person:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from models.base_model import BasicModel
 
@@ -10,7 +10,7 @@ class PersonOut(BasicModel):
     id: str
     full_name: str
     role: str
-    film_ids: Optional[list[str]] = []
+    film_ids: Optional[List[str]] = []
 
 
 class FilmWorkOut(BasicModel):

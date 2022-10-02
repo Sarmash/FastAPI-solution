@@ -98,7 +98,7 @@ class PersonService(Service):
                     break
         return person
 
-    async def search_person(self, query: str, role: str, page_size: int,
+    async def search_person(self, query: str, page_size: int,
                             page_query: int) -> list:
         """
         Производит поиск по персонам -
@@ -106,12 +106,20 @@ class PersonService(Service):
         role=... для указания с какой ролью этой персоны делать запрос,
         page=1&page_size=10 - для выбора страницы и количества записей на странице
         """
+        actors = []
+        writers = []
+        directors = []
+        # item_counter = 0
         film_list = []
-        item_counter = 0
         persons_list = []
         async for doc in helpers.async_scan(
                 client=self.elastic,
-                query={"_source": {"includes": ["title", role]}},
+                query={"_source": {"includes": [
+                    "id",
+                    "actors",
+                    "writers",
+                    "director"
+                ]}},
                 index=self.index_films,
         ):
             film_list.append(doc["_source"])
@@ -120,22 +128,44 @@ class PersonService(Service):
                 index=self.index_person,
                 query={"query": {"match": {"full_name": query}}},
         ):
-            item_counter += 1
-            if item_counter >= page_query * page_size - page_size:
-                persons_list.append(PersonOut(
-                    id=doc['_source']['id'],
-                    full_name=doc['_source']['full_name'],
-                    role=role,
-                    film_ids=[])
-                )
-                for film in film_list:
-                    for item in film[role]:
-                        for person in persons_list:
-                            if item['id'] == person.id:
-                                person.film_ids.append(film['title'])
-                                break
-                if len(persons_list) == page_size:
-                    return persons_list
+            # item_counter += 1
+            # if item_counter >= page_query * page_size - page_size:
+            persons_list.append(PersonOut(
+                id=doc['_source']['id'],
+                full_name=doc['_source']['full_name'],
+                role='actor',
+                film_ids=[])
+            )
+            for film in film_list:
+                for actor in film["actors"]:
+                    for person in persons_list:
+                        if actor["id"] == person.id:
+                            person.film_ids.append(film['id'])
+                            person.role = 'actor'
+                            actors.append(person)
+                            break
+            for film in film_list:
+                for writer in film["writers"]:
+                    for person in persons_list:
+                        if writer["id"] == person.id:
+                            person.film_ids.append(film['id'])
+                            person.role = 'writer'
+                            writers.append(person)
+                            break
+            for film in film_list:
+                for person in persons_list:
+                    if film["director"] == person.full_name:
+                        person.film_ids.append(film['id'])
+                        person.role = 'director'
+                        directors.append(person)
+                        break
+            if len(actors) == len(writers):
+                return actors
+            if len(actors) > len(writers) and len(actors) > len(directors):
+                return actors
+            if len(writers) > len(directors):
+                return writers
+            return directors
         return persons_list
 
 
