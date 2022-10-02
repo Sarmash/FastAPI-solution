@@ -92,8 +92,8 @@ class PersonService(Service):
             film_ids=[]
         )
         for film in film_list:
-            for actor in film['actors']:
-                if actor['id'] == person.id:
+            for item in film[role]:
+                if item['id'] == person.id:
                     person.film_ids.append(film['title'])
                     break
         return person
