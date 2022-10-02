@@ -7,7 +7,7 @@ from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
 from fastapi import Depends
 from models.filmwork import FilmWorkOut
-from models.person import Person, PersonFilmWork, PersonOut
+from models.person import PersonOut
 from services.service_base import Service
 
 
@@ -15,15 +15,12 @@ class PersonService(Service):
     index_person = "persons"
     index_films = "movies"
 
-    async def get_person_film_list(self, person_id: str) -> Optional[PersonFilmWork]:
-        pass
-
-    async def get_person_detail(self, person_id: str, role: str) -> Optional[Person]:
+    async def get_person_detail(self, person_id: str, role: str) -> Optional[PersonOut]:
         film_list = []
         async for doc in helpers.async_scan(
             client=self.elastic,
             query={"_source": {"includes": ["title", role]}},
-            index="movies",
+            index=self.index_films,
         ):
             film_list.append(doc["_source"])
         try:
