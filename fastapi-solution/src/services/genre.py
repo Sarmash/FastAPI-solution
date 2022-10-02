@@ -22,10 +22,7 @@ class GenreService(Service):
         if sort != "asc" and sort != "desc":
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="incorrect sorting format")
 
-        if page_number == 1:
-            from_ = 0
-        else:
-            from_ = page_number*page_size - page_size
+        from_ = 0 if page_number == 1 else page_number*page_size - page_size
 
         body = {"sort": {"genre": {"order": sort}}}
 
