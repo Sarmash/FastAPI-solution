@@ -16,17 +16,23 @@ class GenreService(Service):
 
     INDEX = "genres"
 
-    async def get_genres(self, page_size: int, page_number: int, sort: str = "asc") -> Optional[list]:
+    async def get_genres(
+        self, page_size: int, page_number: int, sort: str = "asc"
+    ) -> Optional[list]:
         """Запрос к elasticsearch на получение списка жанров по заданной странице"""
 
         if sort != "asc" and sort != "desc":
-            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="incorrect sorting format")
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST, detail="incorrect sorting format"
+            )
 
-        from_ = 0 if page_number == 1 else page_number*page_size - page_size
+        from_ = 0 if page_number == 1 else page_number * page_size - page_size
 
         body = {"sort": {"genre": {"order": sort}}}
 
-        raw_genres = await self.elastic.search(index=self.INDEX, size=page_size, body=body, from_=from_)
+        raw_genres = await self.elastic.search(
+            index=self.INDEX, size=page_size, body=body, from_=from_
+        )
 
         genres = [Genre(**genre["_source"]) for genre in raw_genres["hits"]["hits"]]
 

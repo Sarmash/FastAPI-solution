@@ -17,5 +17,5 @@ class PersonFilmWork(BasicModel):
 class PersonOut(BasicModel):
     id: str
     full_name: str
-    role: str
+    role: Optional[str]
     film_ids: Optional[list[str]] = []

@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Optional
 
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -25,12 +26,11 @@ async def person_list(
 @router.get("/search/")
 async def search_person(
     query: str,
-    role: str = Query(default="actors"),
     service: PersonService = Depends(get_person_service),
     page: int = Query(default=1, gt=0),
     page_size: int = Query(default=50, gt=0),
-) -> list[PersonOut]:
-    list_person = await service.search_person(query, role, page_size, page)
+) -> list:
+    list_person = await service.search_person(query, page_size, page)
     if not list_person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
     return list_person
@@ -43,7 +43,7 @@ async def person_details(
     person_id: str,
     role: str = Query(default="actors"),
     service: PersonService = Depends(get_person_service),
-) -> list:
+) -> Optional[PersonOut]:
     person = await service.get_person_detail(person_id, role)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")

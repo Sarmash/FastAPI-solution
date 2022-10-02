@@ -16,7 +16,7 @@ async def genre_list(
     service: GenreService = Depends(get_genre_service),
     page: int = Query(default=1, gt=0),
     page_size: int = Query(default=50, gt=0),
-    sort: str = Query(default='asc')
+    sort: str = Query(default="asc"),
 ) -> list:
     """Эндпоинт - /api/v1/genres/ - возвращающий список жанров постранично
     - /api/v1/genres/?page=1&page_size=10&sort=asc - для запроса по кол-ву жанров и странице"""
