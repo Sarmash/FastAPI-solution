@@ -43,42 +43,84 @@ class PersonService(Service):
                     break
         return person
 
-    async def search_person(
-        self, query: str, role: str, page_size: int, page_query: int
-    ) -> list:
+    async def search_person(self, query: str, page_size: int, page_number: int) -> list:
         film_list = []
-        item_counter = 0
         persons_list = []
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            query={"_source": {"includes": ["title", role]}},
-            index=self.index_films,
-        ):
-            film_list.append(doc["_source"])
         async for doc in helpers.async_scan(
             client=self.elastic,
             index=self.index_person,
             query={"query": {"match": {"full_name": query}}},
         ):
-            item_counter += 1
-            if item_counter >= page_query * page_size - page_size:
-                persons_list.append(
-                    PersonOut(
-                        id=doc["_source"]["id"],
-                        full_name=doc["_source"]["full_name"],
-                        role=role,
-                        film_ids=[],
-                    )
+            persons_list.append(
+                PersonOut(
+                    id=doc["_source"]["id"],
+                    full_name=doc["_source"]["full_name"],
+                    role=None,
+                    film_ids=[],
                 )
-                for film in film_list:
-                    for item in film[role]:
-                        for person in persons_list:
-                            if item["id"] == person.id:
-                                person.film_ids.append(film["title"])
-                                break
-                if len(persons_list) == page_size:
-                    return persons_list
-        return persons_list
+            )
+
+        for person in persons_list:
+            list_role = ["actors", "writers"]
+            actors_films = []
+            writers_films = []
+            director_films = []
+            for role in list_role:
+                body = {
+                    "_source": {"includes": ["id"]},
+                    "query": {
+                        "nested": {
+                            "path": role,
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {f"{role}.id": person.id}},
+                                    ]
+                                }
+                            },
+                        }
+                    },
+                }
+                async for doc in helpers.async_scan(
+                    client=self.elastic, index=self.index_films, query=body
+                ):
+                    if role == "actors":
+                        actors_films.append(doc["_source"]["id"])
+                    else:
+                        writers_films.append(doc["_source"]["id"])
+            body = {
+                "_source": {"includes": ["id", "title", "imdb_rating"]},
+                "query": {
+                    "match": {"director": person.full_name},
+                },
+            }
+            async for doc in helpers.async_scan(
+                client=self.elastic,
+                query=body,
+                index=self.index_films,
+            ):
+                director_films.append(doc["_source"]["id"])
+
+            if len(actors_films) == max(
+                len(actors_films), len(writers_films), len(director_films)
+            ):
+                person.role = "actor"
+                person.film_ids = actors_films
+                film_list.append(person)
+            elif len(writers_films) == max(
+                len(actors_films), len(writers_films), len(director_films)
+            ):
+                person.role = "writer"
+                person.film_ids = writers_films
+                film_list.append(person)
+            else:
+                person.role = "director"
+                person.film_ids = director_films
+                film_list.append(person)
+
+        persons = await self.pagination(film_list, page_size, page_number)
+
+        return persons
 
     async def person_films(self, person_id: str):
         person = await self.elastic.get(self.index_person, person_id)
@@ -129,7 +171,7 @@ class PersonService(Service):
 
 @lru_cache()
 def get_person_service(
-    redise: Redis = Depends(get_redis),
+    redis: Redis = Depends(get_redis),
     elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonService:
-    return PersonService(redise, elastic)
+    return PersonService(redis, elastic)

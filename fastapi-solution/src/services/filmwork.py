@@ -54,9 +54,7 @@ class FilmService(Service):
             }
 
         async for doc in helpers.async_scan(
-            client=self.elastic,
-            query=body,
-            index=self.INDEX
+            client=self.elastic, query=body, index=self.INDEX
         ):
             films_list.append(FilmWorkOut(**doc["_source"]))
 
