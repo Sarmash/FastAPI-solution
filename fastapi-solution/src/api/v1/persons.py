@@ -9,11 +9,13 @@ router = APIRouter()
 
 
 @router.get("/{person_id}/film/")
+@cache
 async def person_list(
+    request: Request,
     person_id: str,
     service: PersonService = Depends(get_person_service),
 ) -> list:
-    print(person_id)
+    """Эндпоинт - /api/v1/persons/<uuid:UUID>/film/ - возвращающий список, в которых участвовала персона"""
     list_person = await service.person_films(person_id)
     if not list_person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")

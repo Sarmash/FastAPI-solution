@@ -86,6 +86,7 @@ class PersonService(Service):
     async def person_films(self, person_id: str):
         person = await self.elastic.get(self.index_person, person_id)
         person_films = []
+        films_ids = []
         list_role = ["actors", "writers"]
         for role in list_role:
             body = {
@@ -106,7 +107,9 @@ class PersonService(Service):
             async for doc in helpers.async_scan(
                 client=self.elastic, index=self.index_films, query=body
             ):
-                person_films.append(FilmWorkOut(**doc["_source"]))
+                if doc["_source"]["id"] not in films_ids:
+                    films_ids.append(doc["_source"]["id"])
+                    person_films.append(FilmWorkOut(**doc["_source"]))
 
         body = {
             "_source": {"includes": ["id", "title", "imdb_rating"]},
@@ -120,10 +123,8 @@ class PersonService(Service):
             query=body,
             index=self.index_films,
         ):
-            for film in person_films:
-                if film.title == doc["_source"]["title"]:
-                    break
-            else:
+            if doc["_source"]["id"] not in films_ids:
+                films_ids.append(doc["_source"]["id"])
                 person_films.append(FilmWorkOut(**doc["_source"]))
 
         return person_films
