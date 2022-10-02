@@ -3,19 +3,20 @@ from typing import Optional
 from models.base_model import BasicModel
 
 
-class Person(BasicModel):
-    id: str
-    full_name: str
-
-
-class PersonFilmWork(BasicModel):
-    uuid: str
-    title: str
-    imdb_rating: float = 0.0
-
-
 class PersonOut(BasicModel):
+    """
+    Модель для вывода данных по персоне
+    """
     id: str
     full_name: str
     role: str
     film_ids: Optional[list[str]] = []
+
+
+class FilmWorkOut(BasicModel):
+    """
+    Модель для вывода фильмов по персоне
+    """
+    id: str
+    title: str
+    imdb_rating: Optional[float]

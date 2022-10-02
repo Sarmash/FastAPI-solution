@@ -6,7 +6,7 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
 from fastapi import Depends
-from models.person import Person, PersonFilmWork, PersonOut
+from models.person import FilmWorkOut, PersonOut
 
 from services.service_base import Service
 
@@ -16,16 +16,66 @@ class PersonService(Service):
     index_films = 'movies'
 
     async def get_person_film_list(self,
-                                   person_id: str) -> Optional[PersonFilmWork]:
-        pass
+                                   person_id: str,) -> Optional[list]:
+        """
+        Возвращает фильмы по конкретной персоне
+        """
+        person = await self.elastic.get(self.index_person, person_id)
+        person_films = []
+        list_role = ["actors", "writers"]
+        for role in list_role:
+            body = {
+                "_source": {"includes": ["id", "title", "imdb_rating"]},
+                "query": {
+                    "nested": {
+                        "path": role,
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    {"match": {f"{role}.id": person["_source"][
+                                        "id"]}},
+                                ]
+                            }
+                        },
+                    }
+                },
+            }
+            async for doc in helpers.async_scan(
+                    client=self.elastic, index=self.index_films, query=body
+            ):
+                person_films.append(FilmWorkOut(**doc["_source"]))
+
+        body = {
+            "_source": {"includes": ["id", "title", "imdb_rating"]},
+            "query": {
+                "match": {"director": person["_source"]["full_name"]},
+            },
+        }
+
+        async for doc in helpers.async_scan(
+                client=self.elastic,
+                query=body,
+                index=self.index_films,
+        ):
+            for film in person_films:
+                if film.title == doc["_source"]["title"]:
+                    break
+            else:
+                person_films.append(FilmWorkOut(**doc["_source"]))
+
+        return person_films
 
     async def get_person_detail(self, person_id: str,
-                                role: str) -> Optional[Person]:
+                                role: str) -> Optional[PersonOut]:
+        """
+        Возвращает данные по конкретной персоне
+        role=... указывает с какой ролью этой персоны делать запрос,
+        """
         film_list = []
         async for doc in helpers.async_scan(
                 client=self.elastic,
                 query={"_source": {"includes": ["title", role]}},
-                index="movies",
+                index=self.index_films,
         ):
             film_list.append(doc["_source"])
         try:
@@ -50,6 +100,12 @@ class PersonService(Service):
 
     async def search_person(self, query: str, role: str, page_size: int,
                             page_query: int) -> list:
+        """
+        Производит поиск по персонам -
+        query=... для поиска по персоне,
+        role=... для указания с какой ролью этой персоны делать запрос,
+        page=1&page_size=10 - для выбора страницы и количества записей на странице
+        """
         film_list = []
         item_counter = 0
         persons_list = []
@@ -62,7 +118,7 @@ class PersonService(Service):
         async for doc in helpers.async_scan(
                 client=self.elastic,
                 index=self.index_person,
-                query={"query": {"match": {"full_name": query}}}
+                query={"query": {"match": {"full_name": query}}},
         ):
             item_counter += 1
             if item_counter >= page_query * page_size - page_size:
