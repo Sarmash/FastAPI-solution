@@ -43,7 +43,7 @@ class PersonService(Service):
                     break
         return person
 
-    async def search_person(self, query: str, page_size: int, page_query: int) -> list:
+    async def search_person(self, query: str, page_size: int, page_number: int) -> list:
         film_list = []
         persons_list = []
         async for doc in helpers.async_scan(
@@ -118,7 +118,9 @@ class PersonService(Service):
                 person.film_ids = director_films
                 film_list.append(person)
 
-        return film_list
+        persons = await self.pagination(film_list, page_size, page_number)
+
+        return persons
 
     async def person_films(self, person_id: str):
         person = await self.elastic.get(self.index_person, person_id)
