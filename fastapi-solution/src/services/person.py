@@ -1,6 +1,6 @@
 from functools import lru_cache
 from http import HTTPStatus
-from typing import Optional
+from typing import List, Optional
 
 import elasticsearch.exceptions
 from aioredis import Redis
@@ -19,25 +19,32 @@ class PersonService(Service):
     INDEX_PERSON = "persons"
     INDEX_MOVIES = "movies"
 
-    async def get_person_detail(self, person_id: str) -> Optional[PersonOut]:
+    async def get_person_detail(self, person_id: str) -> Optional[PersonOut, List]:
         """Получение списка всех кинопроизведений по ролям
-         в которых участвовал человек по id"""
+        в которых участвовал человек по id"""
 
         full_name, films = await self._get_all_filmworks_for_all_roles_by_id(person_id)
         person_films = []
 
         for role, value in films.items():
             for film in value:
-                if full_name in film["actors_names"] or \
-                        full_name in film["writers_names"] or film["director"] == full_name:
+                if (
+                    full_name in film["actors_names"]
+                    or full_name in film["writers_names"]
+                    or film["director"] == full_name
+                ):
                     continue
                 else:
                     value.remove(film)
             if len(value) != 0:
-                person_films.append(PersonOut(id=person_id,
-                                              full_name=full_name,
-                                              role=role,
-                                              film_ids=[film["id"] for film in value]))
+                person_films.append(
+                    PersonOut(
+                        id=person_id,
+                        full_name=full_name,
+                        role=role,
+                        film_ids=[film["id"] for film in value],
+                    )
+                )
 
         return person_films
 
@@ -48,31 +55,39 @@ class PersonService(Service):
 
         from_ = 0 if page_number == 1 else page_number * page_size - page_size
 
-        raw_persons = await self.elastic.search(size=page_size, from_=from_, index=self.INDEX_PERSON, body=body)
+        raw_persons = await self.elastic.search(
+            size=page_size, from_=from_, index=self.INDEX_PERSON, body=body
+        )
 
         person_films_out = []
 
         for person in raw_persons["hits"]["hits"]:
-            _, films = await self._get_all_filmworks_for_all_roles_by_id(person["_source"]["id"])
+            _, films = await self._get_all_filmworks_for_all_roles_by_id(
+                person["_source"]["id"]
+            )
 
             for role, value in films.items():
-                person_ids = PersonOut(id=person["_source"]["id"],
-                                       full_name=person["_source"]["full_name"],
-                                       role=role,
-                                       film_ids=[film["id"] for film in value])
+                person_ids = PersonOut(
+                    id=person["_source"]["id"],
+                    full_name=person["_source"]["full_name"],
+                    role=role,
+                    film_ids=[film["id"] for film in value],
+                )
 
                 if len(person_ids.film_ids) != 0:
                     person_films_out.append(person_ids)
 
         return person_films_out
 
-    async def _get_all_filmworks_for_all_roles_by_id(self, id_: str) -> Optional[tuple[str, list]]:
+    async def _get_all_filmworks_for_all_roles_by_id(self, id_: str) -> Optional[tuple]:
         """Поиск кинопроизведений по ид с сортировкой по ролям"""
 
         try:
             person = await self.elastic.get(self.INDEX_PERSON, id_)
         except elasticsearch.exceptions.NotFoundError:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail="person not found"
+            )
 
         full_name = person["_source"]["full_name"]
 
@@ -81,18 +96,16 @@ class PersonService(Service):
                 "multi_match": {
                     "query": full_name,
                     "type": "best_fields",
-                    "fields": ["actors_names", "writers_names", "director"]
+                    "fields": ["actors_names", "writers_names", "director"],
                 }
             }
         }
 
-        raw_films = await self.elastic.search(size=969, index=self.INDEX_MOVIES, body=body)
+        raw_films = await self.elastic.search(
+            size=969, index=self.INDEX_MOVIES, body=body
+        )
 
-        films = {
-            "actor": [],
-            "writer": [],
-            "director": []
-        }
+        films = {"actor": [], "writer": [], "director": []}
 
         for person in raw_films["hits"]["hits"]:
             person = person["_source"]
@@ -107,7 +120,7 @@ class PersonService(Service):
 
         return full_name, films
 
-    async def person_films(self, person_id: str) -> Optional[list[FilmWorkOut]]:
+    async def person_films(self, person_id: str) -> Optional[List[FilmWorkOut]]:
         """Поиск кинопроизведений по id"""
 
         _, films = await self._get_all_filmworks_for_all_roles_by_id(person_id)

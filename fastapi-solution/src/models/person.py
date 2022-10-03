@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from models.base_model import BasicModel
 
@@ -19,9 +19,9 @@ class PersonFilmWork(BasicModel):
 
 
 class PersonOut(BasicModel):
-    """Модель ответа для клинта по запросу о участниках кинопроизведений"""
+    """Модель ответа для клиента по запросу об участниках кинопроизведений"""
 
     id: str
     full_name: str
     role: Optional[str]
-    film_ids: Optional[list[str]] = []
+    film_ids: Optional[List[str]]
