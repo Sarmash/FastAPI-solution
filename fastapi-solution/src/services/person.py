@@ -101,21 +101,26 @@ class PersonService(Service):
             ):
                 director_films.append(doc["_source"]["id"])
 
+            total_films = set()
+            total_films.update(actors_films)
+            total_films.update(writers_films)
+            total_films.update(director_films)
+
             if len(actors_films) == max(
                 len(actors_films), len(writers_films), len(director_films)
             ):
                 person.role = "actor"
-                person.film_ids = actors_films
+                person.film_ids = list(total_films)
                 film_list.append(person)
             elif len(writers_films) == max(
                 len(actors_films), len(writers_films), len(director_films)
             ):
                 person.role = "writer"
-                person.film_ids = writers_films
+                person.film_ids = list(total_films)
                 film_list.append(person)
             else:
                 person.role = "director"
-                person.film_ids = director_films
+                person.film_ids = list(total_films)
                 film_list.append(person)
 
         persons = await self.pagination(film_list, page_size, page_number)
