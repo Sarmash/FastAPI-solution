@@ -82,9 +82,11 @@ class PersonService(Service):
             person = person["_source"]
             if full_name in person["actors_names"]:
                 films["actor"].append(person)
-            elif full_name in person["writers_names"]:
+
+            if full_name in person["writers_names"]:
                 films["writer"].append(person)
-            elif full_name == person["director"]:
+
+            if full_name == person["director"]:
                 films["director"].append(person)
 
         return full_name, films
