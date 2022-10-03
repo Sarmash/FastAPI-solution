@@ -24,6 +24,7 @@ async def person_list(
 
 
 @router.get("/search/")
+@cache
 async def search_person(
     query: str,
     service: PersonService = Depends(get_person_service),
@@ -41,10 +42,9 @@ async def search_person(
 async def person_details(
     request: Request,
     person_id: str,
-    role: str = Query(default="actors"),
     service: PersonService = Depends(get_person_service),
 ) -> Optional[PersonOut]:
-    person = await service.get_person_detail(person_id, role)
+    person = await service.get_person_detail(person_id)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
     return person
