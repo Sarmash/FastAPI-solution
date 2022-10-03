@@ -20,7 +20,7 @@ class PersonService(Service):
         person_films = []
         for role, value in films.items():
             for film in value:
-                if full_name in film['actors_names'] or full_name in film['writers_names'] or film['director'] == full_name:
+                if full_name in film["actors_names"] or full_name in film["writers_names"] or film["director"] == full_name:
                     continue
                 else:
                     value.remove(film)
@@ -28,7 +28,7 @@ class PersonService(Service):
                 person_films.append(PersonOut(id=person_id,
                                               full_name=full_name,
                                               role=role,
-                                              film_ids=[film['id'] for film in value]))
+                                              film_ids=[film["id"] for film in value]))
 
         return person_films
 
@@ -41,26 +41,24 @@ class PersonService(Service):
 
         person_films_out = []
 
-        for person in raw_persons['hits']['hits']:
-            _, films = await self.films_for_person(person['_source']['id'])
-            person_films = []
+        for person in raw_persons["hits"]["hits"]:
+            _, films = await self.films_for_person(person["_source"]["id"])
 
             for role, value in films.items():
-                person_ids = PersonOut(id=person['_source']['id'],
-                                       full_name=person['_source']['full_name'],
+                person_ids = PersonOut(id=person["_source"]["id"],
+                                       full_name=person["_source"]["full_name"],
                                        role=role,
-                                       film_ids=[film['id'] for film in value])
+                                       film_ids=[film["id"] for film in value])
 
                 if len(person_ids.film_ids) != 0:
-                    person_films.append(person_ids)
-            person_films_out.append(person_films)
+                    person_films_out.append(person_ids)
 
         return person_films_out
 
     async def films_for_person(self, id_):
         person = await self.elastic.get(self.index_person, id_)
 
-        full_name = person['_source']['full_name']
+        full_name = person["_source"]["full_name"]
 
         body = {
             "query": {
@@ -72,7 +70,7 @@ class PersonService(Service):
             }
         }
 
-        raw_films = await self.elastic.search(size=777, index='movies', body=body)
+        raw_films = await self.elastic.search(size=777, index="movies", body=body)
 
         films = {
             "actor": [],
@@ -80,14 +78,14 @@ class PersonService(Service):
             "director": []
         }
 
-        for person in raw_films['hits']['hits']:
-            person = person['_source']
-            if full_name in person['actors_names']:
-                films['actor'].append(person)
-            elif full_name in person['writers_names']:
-                films['writer'].append(person)
-            elif full_name == person['director']:
-                films['director'].append(person)
+        for person in raw_films["hits"]["hits"]:
+            person = person["_source"]
+            if full_name in person["actors_names"]:
+                films["actor"].append(person)
+            elif full_name in person["writers_names"]:
+                films["writer"].append(person)
+            elif full_name == person["director"]:
+                films["director"].append(person)
 
         return full_name, films
 

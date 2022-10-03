@@ -26,6 +26,7 @@ async def person_list(
 @router.get("/search/")
 @cache
 async def search_person(
+    request: Request,
     query: str,
     service: PersonService = Depends(get_person_service),
     page: int = Query(default=1, gt=0),
