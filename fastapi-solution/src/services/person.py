@@ -124,47 +124,31 @@ class PersonService(Service):
 
     async def person_films(self, person_id: str):
         person = await self.elastic.get(self.index_person, person_id)
-        person_films = []
-        films_ids = []
-        list_role = ["actors", "writers"]
-        for role in list_role:
-            body = {
-                "_source": {"includes": ["id", "title", "imdb_rating"]},
-                "query": {
-                    "nested": {
-                        "path": role,
-                        "query": {
-                            "bool": {
-                                "must": [
-                                    {"match": {f"{role}.id": person["_source"]["id"]}},
-                                ]
-                            }
-                        },
-                    }
-                },
-            }
-            async for doc in helpers.async_scan(
-                client=self.elastic, index=self.index_films, query=body
-            ):
-                if doc["_source"]["id"] not in films_ids:
-                    films_ids.append(doc["_source"]["id"])
-                    person_films.append(FilmWorkOut(**doc["_source"]))
+
+        full_name = person['_source']['full_name']
 
         body = {
-            "_source": {"includes": ["id", "title", "imdb_rating"]},
             "query": {
-                "match": {"director": person["_source"]["full_name"]},
-            },
+                "multi_match": {
+                    "query": full_name,
+                    "type": "best_fields",
+                    "fields": ["actors_names", "writers_names", "director"]
+                }
+            }
         }
 
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            query=body,
-            index=self.index_films,
-        ):
-            if doc["_source"]["id"] not in films_ids:
-                films_ids.append(doc["_source"]["id"])
-                person_films.append(FilmWorkOut(**doc["_source"]))
+        raw_films = await self.elastic.search(size=777, index='movies', body=body)
+
+        films = []
+
+        for person in raw_films['hits']['hits']:
+            person = person['_source']
+            if full_name in person['actors_names'] or full_name in person['writers_names'] or full_name == person['director']:
+                films.append(person)
+            else:
+                break
+
+        person_films = [FilmWorkOut(**film) for film in films]
 
         return person_films
 
