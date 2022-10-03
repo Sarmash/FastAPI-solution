@@ -91,7 +91,7 @@ class PersonService(Service):
             body = {
                 "_source": {"includes": ["id", "title", "imdb_rating"]},
                 "query": {
-                    "match": {"director": person.full_name},
+                    "match": {"directors": person.full_name},
                 },
             }
             async for doc in helpers.async_scan(
@@ -100,6 +100,7 @@ class PersonService(Service):
                 index=self.index_films,
             ):
                 director_films.append(doc["_source"]["id"])
+                print(director_films, person.full_name)
 
             total_films = set()
             total_films.update(actors_films)
