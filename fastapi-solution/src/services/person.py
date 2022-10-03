@@ -1,17 +1,20 @@
 from functools import lru_cache
+from http import HTTPStatus
 from typing import Optional
 
+import elasticsearch.exceptions
 from aioredis import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from models.filmwork import FilmWorkOut
 from models.person import PersonOut
 from services.service_base import Service
 
 
 class PersonService(Service):
+    """Сервис для обработки запросов в elasticsearch"""
     index_person = "persons"
     index_films = "movies"
 
@@ -56,7 +59,10 @@ class PersonService(Service):
         return person_films_out
 
     async def films_for_person(self, id_):
-        person = await self.elastic.get(self.index_person, id_)
+        try:
+            person = await self.elastic.get(self.index_person, id_)
+        except elasticsearch.exceptions.NotFoundError:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
 
         full_name = person["_source"]["full_name"]
 
