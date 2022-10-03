@@ -1,170 +1,120 @@
 from functools import lru_cache
+from http import HTTPStatus
 from typing import Optional
 
+import elasticsearch.exceptions
 from aioredis import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
-from fastapi import Depends
+from elasticsearch import AsyncElasticsearch
+from fastapi import Depends, HTTPException
 from models.filmwork import FilmWorkOut
 from models.person import PersonOut
 from services.service_base import Service
 
 
 class PersonService(Service):
-    index_person = "persons"
-    index_films = "movies"
+    """Сервис для обработки запросов по роутеру persons в elasticsearch"""
 
-    async def get_person_detail(self, person_id: str, role: str) -> Optional[PersonOut]:
-        film_list = []
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            query={"_source": {"includes": ["title", role]}},
-            index=self.index_films,
-        ):
-            film_list.append(doc["_source"])
-        try:
-            person = await self.elastic.get(
-                self.index_person,
-                person_id,
-            )
-        except NotFoundError:
-            return
-        person = PersonOut(
-            id=person["_source"]["id"],
-            full_name=person["_source"]["full_name"],
-            role=role,
-            film_ids=[],
-        )
-        for film in film_list:
-            for actor in film["actors"]:
-                if actor["id"] == person.id:
-                    person.film_ids.append(film["title"])
-                    break
-        return person
+    INDEX_PERSON = "persons"
+    INDEX_MOVIES = "movies"
+
+    async def get_person_detail(self, person_id: str) -> Optional[PersonOut]:
+        """Получение списка всех кинопроизведений по ролям
+         в которых участвовал человек по id"""
+
+        full_name, films = await self.films_for_person(person_id)
+        person_films = []
+
+        for role, value in films.items():
+            for film in value:
+                if full_name in film["actors_names"] or \
+                        full_name in film["writers_names"] or film["director"] == full_name:
+                    continue
+                else:
+                    value.remove(film)
+            if len(value) != 0:
+                person_films.append(PersonOut(id=person_id,
+                                              full_name=full_name,
+                                              role=role,
+                                              film_ids=[film["id"] for film in value]))
+
+        return person_films
 
     async def search_person(self, query: str, page_size: int, page_number: int) -> list:
-        film_list = []
-        persons_list = []
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            index=self.index_person,
-            query={"query": {"match": {"full_name": query}}},
-        ):
-            persons_list.append(
-                PersonOut(
-                    id=doc["_source"]["id"],
-                    full_name=doc["_source"]["full_name"],
-                    role=None,
-                    film_ids=[],
-                )
-            )
+        """Поиск и сортировка совпадений имен по квери с пагинацией"""
 
-        for person in persons_list:
-            list_role = ["actors", "writers"]
-            actors_films = []
-            writers_films = []
-            director_films = []
-            for role in list_role:
-                body = {
-                    "_source": {"includes": ["id"]},
-                    "query": {
-                        "nested": {
-                            "path": role,
-                            "query": {
-                                "bool": {
-                                    "must": [
-                                        {"match": {f"{role}.id": person.id}},
-                                    ]
-                                }
-                            },
-                        }
-                    },
-                }
-                async for doc in helpers.async_scan(
-                    client=self.elastic, index=self.index_films, query=body
-                ):
-                    if role == "actors":
-                        actors_films.append(doc["_source"]["id"])
-                    else:
-                        writers_films.append(doc["_source"]["id"])
-            body = {
-                "_source": {"includes": ["id", "title", "imdb_rating"]},
-                "query": {
-                    "match": {"director": person.full_name},
-                },
-            }
-            async for doc in helpers.async_scan(
-                client=self.elastic,
-                query=body,
-                index=self.index_films,
-            ):
-                director_films.append(doc["_source"]["id"])
+        body = {"query": {"match": {"full_name": query}}}
 
-            if len(actors_films) == max(
-                len(actors_films), len(writers_films), len(director_films)
-            ):
-                person.role = "actor"
-                person.film_ids = actors_films
-                film_list.append(person)
-            elif len(writers_films) == max(
-                len(actors_films), len(writers_films), len(director_films)
-            ):
-                person.role = "writer"
-                person.film_ids = writers_films
-                film_list.append(person)
-            else:
-                person.role = "director"
-                person.film_ids = director_films
-                film_list.append(person)
+        from_ = 0 if page_number == 1 else page_number * page_size - page_size
 
-        persons = await self.pagination(film_list, page_size, page_number)
+        raw_persons = await self.elastic.search(size=page_size, from_=from_, index=self.INDEX_PERSON, body=body)
 
-        return persons
+        person_films_out = []
 
-    async def person_films(self, person_id: str):
-        person = await self.elastic.get(self.index_person, person_id)
-        person_films = []
-        films_ids = []
-        list_role = ["actors", "writers"]
-        for role in list_role:
-            body = {
-                "_source": {"includes": ["id", "title", "imdb_rating"]},
-                "query": {
-                    "nested": {
-                        "path": role,
-                        "query": {
-                            "bool": {
-                                "must": [
-                                    {"match": {f"{role}.id": person["_source"]["id"]}},
-                                ]
-                            }
-                        },
-                    }
-                },
-            }
-            async for doc in helpers.async_scan(
-                client=self.elastic, index=self.index_films, query=body
-            ):
-                if doc["_source"]["id"] not in films_ids:
-                    films_ids.append(doc["_source"]["id"])
-                    person_films.append(FilmWorkOut(**doc["_source"]))
+        for person in raw_persons["hits"]["hits"]:
+            _, films = await self.films_for_person(person["_source"]["id"])
+
+            for role, value in films.items():
+                person_ids = PersonOut(id=person["_source"]["id"],
+                                       full_name=person["_source"]["full_name"],
+                                       role=role,
+                                       film_ids=[film["id"] for film in value])
+
+                if len(person_ids.film_ids) != 0:
+                    person_films_out.append(person_ids)
+
+        return person_films_out
+
+    async def films_for_person(self, id_: str) -> Optional[tuple[str, list]]:
+        """Поиск кинопроизведений по ид с сортировкой по ролям"""
+
+        try:
+            person = await self.elastic.get(self.INDEX_PERSON, id_)
+        except elasticsearch.exceptions.NotFoundError:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+
+        full_name = person["_source"]["full_name"]
 
         body = {
-            "_source": {"includes": ["id", "title", "imdb_rating"]},
             "query": {
-                "match": {"director": person["_source"]["full_name"]},
-            },
+                "multi_match": {
+                    "query": full_name,
+                    "type": "best_fields",
+                    "fields": ["actors_names", "writers_names", "director"]
+                }
+            }
         }
 
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            query=body,
-            index=self.index_films,
-        ):
-            if doc["_source"]["id"] not in films_ids:
-                films_ids.append(doc["_source"]["id"])
-                person_films.append(FilmWorkOut(**doc["_source"]))
+        raw_films = await self.elastic.search(size=969, index=self.INDEX_MOVIES, body=body)
+
+        films = {
+            "actor": [],
+            "writer": [],
+            "director": []
+        }
+
+        for person in raw_films["hits"]["hits"]:
+            person = person["_source"]
+            if full_name in person["actors_names"]:
+                films["actor"].append(person)
+
+            if full_name in person["writers_names"]:
+                films["writer"].append(person)
+
+            if full_name == person["director"]:
+                films["director"].append(person)
+
+        return full_name, films
+
+    async def person_films(self, person_id: str) -> Optional[list[FilmWorkOut]]:
+        """Поиск кинопроизведений по id"""
+
+        _, films = await self.films_for_person(person_id)
+        person_films = []
+        for role, value in films.items():
+            for film in value:
+                person_films.append(FilmWorkOut(**film))
 
         return person_films
 

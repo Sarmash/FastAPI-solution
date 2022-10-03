@@ -24,12 +24,17 @@ async def person_list(
 
 
 @router.get("/search/")
+@cache
 async def search_person(
+    request: Request,
     query: str,
     service: PersonService = Depends(get_person_service),
     page: int = Query(default=1, gt=0),
     page_size: int = Query(default=50, gt=0),
 ) -> list:
+    """Эндпроинт - /api/v1/persons/search/?query=George&page=1&page_size=10 -
+    возвращающий список совпадений по квери"""
+
     list_person = await service.search_person(query, page_size, page)
     if not list_person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
@@ -41,10 +46,12 @@ async def search_person(
 async def person_details(
     request: Request,
     person_id: str,
-    role: str = Query(default="actors"),
     service: PersonService = Depends(get_person_service),
 ) -> Optional[PersonOut]:
-    person = await service.get_person_detail(person_id, role)
+    """Эндпоинт - /api/v1/persons/a5a8f573-3cee-4ccc-8a2b-91cb9f55250a/ -
+    для вывода списка фильмов по ролям в которых участвовал человек"""
+
+    person = await service.get_person_detail(person_id)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
     return person

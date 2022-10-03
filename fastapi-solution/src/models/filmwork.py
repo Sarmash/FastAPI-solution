@@ -7,11 +7,11 @@ class FilmWork(BasicModel):
     id: str
     title: str
     imdb_rating: Optional[float]
-    description: str = None
+    description: Optional[str] = None
     genre: list = []
     actors: list = []
     writers: list = []
-    directors: list = []
+    directors: Optional[str] = None
 
 
 class FilmWorkOut(BasicModel):
