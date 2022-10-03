@@ -19,7 +19,7 @@ class PersonService(Service):
     INDEX_PERSON = "persons"
     INDEX_MOVIES = "movies"
 
-    async def get_person_detail(self, person_id: str) -> Optional[PersonOut, List]:
+    async def get_person_detail(self, person_id: str) -> List[PersonOut]:
         """Получение списка всех кинопроизведений по ролям
         в которых участвовал человек по id"""
 
