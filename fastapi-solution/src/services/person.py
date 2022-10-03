@@ -159,7 +159,7 @@ class PersonService(Service):
         body = {
             "_source": {"includes": ["id", "title", "imdb_rating"]},
             "query": {
-                "match": {"director": person["_source"]["full_name"]},
+                "match": {"directors": person["_source"]["full_name"]},
             },
         }
 
