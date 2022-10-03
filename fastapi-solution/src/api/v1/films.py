@@ -4,6 +4,7 @@ from typing import Any
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from models.filmwork import FilmWork
+from models.pagination import Paginator
 from services.filmwork import FilmService, get_film_service
 from services.genre import GenreService, get_genre_service
 
@@ -30,8 +31,7 @@ async def related_films(
     sort: str = Query(
         default="-imdb_rating", description='Sorting by parameter "imdb_rating"'
     ),
-    page_size: int = Query(default=50, gt=0, description="Number of movies per page."),
-    page_number: int = Query(default=1, gt=0, description="Page number."),
+    paginator: Paginator = Depends(),
     service: FilmService = Depends(get_film_service),
     genre_service: GenreService = Depends(get_genre_service),
 ) -> list:
@@ -48,10 +48,14 @@ async def related_films(
             )
 
     films = await service.get_info_films(
-        sort=sort, genre=genre, page_size=page_size, page_number=page_number
+        sort=sort,
+        genre=genre,
     )
     if not films:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+
+    films = paginator.pagination(films)
+
     return films
 
 
@@ -60,15 +64,16 @@ async def related_films(
 async def search_films(
     request: Request,
     query: Any = Query(..., description="What movie are we looking for?"),
-    page_size: int = Query(default=50, gt=0, description="Number of movies per page."),
-    page_number: int = Query(default=1, gt=0, description="Page number."),
+    paginator: Paginator = Depends(),
     service: FilmService = Depends(get_film_service),
 ) -> list:
     """Эндпоинт - /api/v1/films/search/ - возвращающий страницу поиска фильмов,
     - /search/?query=star&page_size=50&page_number=1 - для запроса по слову "star" """
-    films = await service.get_info_films(
-        query=query, page_size=page_size, page_number=page_number
-    )
+    films = await service.get_info_films(query=query)
+
     if not films:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+
+    films = paginator.pagination(films)
+
     return films
