@@ -12,7 +12,9 @@ class Service:
         self.redis = redis
         self.elastic = elastic
 
-    async def pagination(self, films: list, page_size: int, page_number: int) -> list:
+    @staticmethod
+    def pagination(films: list, page_size: int, page_number: int) -> list:
+        """Пагинатор"""
         first_number = (page_number - 1) * page_size
         if first_number >= len(films) or len(films) == 0:
             raise HTTPException(

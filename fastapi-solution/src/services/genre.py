@@ -19,7 +19,7 @@ class GenreService(Service):
     async def get_genres(
         self, page_size: int, page_number: int, sort: str = "asc"
     ) -> Optional[list]:
-        """Запрос к elasticsearch на получение списка жанров по заданной странице"""
+        """Запрос к elasticsearch на получение списка жанров постранично"""
 
         if sort != "asc" and sort != "desc":
             raise HTTPException(

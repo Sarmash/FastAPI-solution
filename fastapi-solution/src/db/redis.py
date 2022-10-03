@@ -3,12 +3,11 @@ from functools import wraps
 from typing import Optional
 
 from aioredis import Redis
-from core.config import FILM_CACHE_EXPIRE_IN_SECONDS
+from core.config import default_settings
 
 redis: Optional[Redis] = None
 
 
-# Функция понадобится при внедрении зависимостей.
 async def get_redis() -> Redis:
     return redis
 
@@ -44,7 +43,7 @@ def cache(func):
             result_for_cache = json.dumps([model.json() for model in result_for_cache])
 
         await redis_client.set(
-            key=request, value=result_for_cache, expire=FILM_CACHE_EXPIRE_IN_SECONDS
+            key=request, value=result_for_cache, expire=default_settings.redis_cache_expire_in_seconds
         )
         return result
 

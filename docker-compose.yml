@@ -13,8 +13,8 @@ services:
       - redis
     env_file:
       - fastapi-solution/src/core/.dev.env
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     networks:
       - apinet
 

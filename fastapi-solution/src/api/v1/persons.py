@@ -1,9 +1,8 @@
 from http import HTTPStatus
-from typing import Optional
+from typing import List, Optional
 
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from models.person import PersonOut
 from services.person import PersonService, get_person_service
 
 router = APIRouter()
@@ -47,7 +46,7 @@ async def person_details(
     request: Request,
     person_id: str,
     service: PersonService = Depends(get_person_service),
-) -> Optional[PersonOut]:
+) -> Optional[List]:
     """Эндпоинт - /api/v1/persons/a5a8f573-3cee-4ccc-8a2b-91cb9f55250a/ -
     для вывода списка фильмов по ролям в которых участвовал человек"""
 
