@@ -14,16 +14,22 @@ from services.service_base import Service
 
 
 class PersonService(Service):
-    """Сервис для обработки запросов в elasticsearch"""
-    index_person = "persons"
-    index_films = "movies"
+    """Сервис для обработки запросов по роутеру persons в elasticsearch"""
+
+    INDEX_PERSON = "persons"
+    INDEX_MOVIES = "movies"
 
     async def get_person_detail(self, person_id: str) -> Optional[PersonOut]:
+        """Получение списка всех кинопроизведений по ролям
+         в которых участвовал человек по id"""
+
         full_name, films = await self.films_for_person(person_id)
         person_films = []
+
         for role, value in films.items():
             for film in value:
-                if full_name in film["actors_names"] or full_name in film["writers_names"] or film["director"] == full_name:
+                if full_name in film["actors_names"] or \
+                        full_name in film["writers_names"] or film["director"] == full_name:
                     continue
                 else:
                     value.remove(film)
@@ -36,11 +42,13 @@ class PersonService(Service):
         return person_films
 
     async def search_person(self, query: str, page_size: int, page_number: int) -> list:
+        """Поиск и сортировка совпадений имен по квери с пагинацией"""
+
         body = {"query": {"match": {"full_name": query}}}
 
         from_ = 0 if page_number == 1 else page_number * page_size - page_size
 
-        raw_persons = await self.elastic.search(size=page_size, from_=from_, index=self.index_person, body=body)
+        raw_persons = await self.elastic.search(size=page_size, from_=from_, index=self.INDEX_PERSON, body=body)
 
         person_films_out = []
 
@@ -58,9 +66,11 @@ class PersonService(Service):
 
         return person_films_out
 
-    async def films_for_person(self, id_):
+    async def films_for_person(self, id_: str) -> Optional[tuple[str, list]]:
+        """Поиск кинопроизведений по ид с сортировкой по ролям"""
+
         try:
-            person = await self.elastic.get(self.index_person, id_)
+            person = await self.elastic.get(self.INDEX_PERSON, id_)
         except elasticsearch.exceptions.NotFoundError:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
 
@@ -76,7 +86,7 @@ class PersonService(Service):
             }
         }
 
-        raw_films = await self.elastic.search(size=777, index="movies", body=body)
+        raw_films = await self.elastic.search(size=969, index=self.INDEX_MOVIES, body=body)
 
         films = {
             "actor": [],
@@ -97,7 +107,9 @@ class PersonService(Service):
 
         return full_name, films
 
-    async def person_films(self, person_id: str):
+    async def person_films(self, person_id: str) -> Optional[list[FilmWorkOut]]:
+        """Поиск кинопроизведений по id"""
+
         _, films = await self.films_for_person(person_id)
         person_films = []
         for role, value in films.items():
