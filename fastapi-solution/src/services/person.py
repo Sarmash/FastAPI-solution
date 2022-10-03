@@ -44,86 +44,32 @@ class PersonService(Service):
         return person
 
     async def search_person(self, query: str, page_size: int, page_number: int) -> list:
-        film_list = []
-        persons_list = []
-        async for doc in helpers.async_scan(
-            client=self.elastic,
-            index=self.index_person,
-            query={"query": {"match": {"full_name": query}}},
-        ):
-            persons_list.append(
-                PersonOut(
-                    id=doc["_source"]["id"],
-                    full_name=doc["_source"]["full_name"],
-                    role=None,
-                    film_ids=[],
-                )
-            )
+        body = {"query": {"match": {"full_name": query}}}
 
-        for person in persons_list:
-            list_role = ["actors", "writers"]
-            actors_films = []
-            writers_films = []
-            director_films = []
-            for role in list_role:
-                body = {
-                    "_source": {"includes": ["id"]},
-                    "query": {
-                        "nested": {
-                            "path": role,
-                            "query": {
-                                "bool": {
-                                    "must": [
-                                        {"match": {f"{role}.id": person.id}},
-                                    ]
-                                }
-                            },
-                        }
-                    },
-                }
-                async for doc in helpers.async_scan(
-                    client=self.elastic, index=self.index_films, query=body
-                ):
-                    if role == "actors":
-                        actors_films.append(doc["_source"]["id"])
-                    else:
-                        writers_films.append(doc["_source"]["id"])
-            body = {
-                "_source": {"includes": ["id", "title", "imdb_rating"]},
-                "query": {
-                    "match": {"director": person.full_name},
-                },
-            }
-            async for doc in helpers.async_scan(
-                client=self.elastic,
-                query=body,
-                index=self.index_films,
-            ):
-                director_films.append(doc["_source"]["id"])
+        from_ = 0 if page_number == 1 else page_number * page_size - page_size
 
-            if len(actors_films) == max(
-                len(actors_films), len(writers_films), len(director_films)
-            ):
-                person.role = "actor"
-                person.film_ids = actors_films
-                film_list.append(person)
-            elif len(writers_films) == max(
-                len(actors_films), len(writers_films), len(director_films)
-            ):
-                person.role = "writer"
-                person.film_ids = writers_films
-                film_list.append(person)
-            else:
-                person.role = "director"
-                person.film_ids = director_films
-                film_list.append(person)
+        raw_persons = await self.elastic.search(size=page_size, from_=from_, index=self.index_person, body=body)
 
-        persons = await self.pagination(film_list, page_size, page_number)
+        person_films_out = []
 
-        return persons
+        for person in raw_persons['hits']['hits']:
+            films = await self.films_for_person(person['_source']['id'])
+            person_films = []
 
-    async def person_films(self, person_id: str):
-        person = await self.elastic.get(self.index_person, person_id)
+            for role, value in films.items():
+                person_ids = PersonOut(id=person['_source']['id'],
+                                       full_name=person['_source']['full_name'],
+                                       role=role,
+                                       film_ids=[film['id'] for film in value])
+
+                if len(person_ids.film_ids) != 0:
+                    person_films.append(person_ids)
+            person_films_out.append(person_films)
+
+        return person_films_out
+
+    async def films_for_person(self, id_):
+        person = await self.elastic.get(self.index_person, id_)
 
         full_name = person['_source']['full_name']
 
@@ -139,16 +85,29 @@ class PersonService(Service):
 
         raw_films = await self.elastic.search(size=777, index='movies', body=body)
 
-        films = []
+        films = {
+            "actor": [],
+            "writer": [],
+            "director": []
+        }
 
         for person in raw_films['hits']['hits']:
             person = person['_source']
-            if full_name in person['actors_names'] or full_name in person['writers_names'] or full_name == person['director']:
-                films.append(person)
-            else:
-                break
+            if full_name in person['actors_names']:
+                films['actor'].append(person)
+            elif full_name in person['writers_names']:
+                films['writer'].append(person)
+            elif full_name == person['director']:
+                films['director'].append(person)
 
-        person_films = [FilmWorkOut(**film) for film in films]
+        return films
+
+    async def person_films(self, person_id: str):
+        films = await self.films_for_person(person_id)
+        person_films = []
+        for role, value in films.items():
+            for film in value:
+                person_films.append(FilmWorkOut(**film))
 
         return person_films
 
