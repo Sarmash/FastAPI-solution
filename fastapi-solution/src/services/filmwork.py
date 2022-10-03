@@ -7,9 +7,8 @@ from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
 from fastapi import Depends
 from models.filmwork import FilmWork, FilmWorkOut
+from models.genre import Genre
 from services.service_base import Service
-
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
 
 class FilmService(Service):
@@ -17,6 +16,7 @@ class FilmService(Service):
     INDEX_SIMILAR = "genre"
 
     async def get_by_id(self, film_id: str) -> Optional[FilmWork]:
+        """Запрос в elasticsearch на получение данных о фильме по id"""
         try:
             doc = await self.elastic.get(self.INDEX, film_id)
         except NotFoundError:
@@ -25,12 +25,13 @@ class FilmService(Service):
 
     async def get_info_films(
         self,
-        sort=None,
-        genre=None,
-        query=None,
+        sort: Optional[str] = None,
+        genre: Optional[Genre] = None,
+        query: Optional[str] = None,
         page_size: int = None,
         page_number: int = None,
     ) -> list:
+        """Работа с elasticsearch на получение данных о фильмах постранично"""
 
         films_list = []
 
@@ -42,7 +43,7 @@ class FilmService(Service):
             body = {
                 "_source": {"includes": ["id", "title", "imdb_rating"]},
                 "query": {
-                    "bool": {"filter": {"term": {self.INDEX_SIMILAR: genre.genre_name}}}
+                    "bool": {"filter": {"term": {self.INDEX_SIMILAR: genre.genre}}}
                 },
             }
         else:
@@ -69,7 +70,7 @@ class FilmService(Service):
                 reverse=reverse,
             )
 
-        films = await self.pagination(films_list, page_size, page_number)
+        films = self.pagination(films_list, page_size, page_number)
 
         return films
 

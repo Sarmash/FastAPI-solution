@@ -23,7 +23,7 @@ class PersonService(Service):
         """Получение списка всех кинопроизведений по ролям
          в которых участвовал человек по id"""
 
-        full_name, films = await self.films_for_person(person_id)
+        full_name, films = await self._get_all_filmworks_for_all_roles_by_id(person_id)
         person_films = []
 
         for role, value in films.items():
@@ -53,7 +53,7 @@ class PersonService(Service):
         person_films_out = []
 
         for person in raw_persons["hits"]["hits"]:
-            _, films = await self.films_for_person(person["_source"]["id"])
+            _, films = await self._get_all_filmworks_for_all_roles_by_id(person["_source"]["id"])
 
             for role, value in films.items():
                 person_ids = PersonOut(id=person["_source"]["id"],
@@ -66,7 +66,7 @@ class PersonService(Service):
 
         return person_films_out
 
-    async def films_for_person(self, id_: str) -> Optional[tuple[str, list]]:
+    async def _get_all_filmworks_for_all_roles_by_id(self, id_: str) -> Optional[tuple[str, list]]:
         """Поиск кинопроизведений по ид с сортировкой по ролям"""
 
         try:
@@ -110,7 +110,7 @@ class PersonService(Service):
     async def person_films(self, person_id: str) -> Optional[list[FilmWorkOut]]:
         """Поиск кинопроизведений по id"""
 
-        _, films = await self.films_for_person(person_id)
+        _, films = await self._get_all_filmworks_for_all_roles_by_id(person_id)
         person_films = []
         for role, value in films.items():
             for film in value:

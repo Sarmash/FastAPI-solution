@@ -4,6 +4,8 @@ from models.base_model import BasicModel
 
 
 class FilmWork(BasicModel):
+    """Модель формирования filmwork из elasticsearch"""
+
     id: str
     title: str
     imdb_rating: Optional[float]
@@ -15,6 +17,8 @@ class FilmWork(BasicModel):
 
 
 class FilmWorkOut(BasicModel):
+    """Модель ответа для клиента по запросу о фильмах"""
+
     id: str
     title: str
     imdb_rating: Optional[float]
