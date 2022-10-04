@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import Optional
 
+import core.http_exceptions as ex
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from models.genre import Genre
@@ -24,7 +25,7 @@ async def genre_list(
     list_genres = await service.get_genres(page_size, page, sort)
 
     if not list_genres:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.PAGE_NOT_FOUND)
 
     return list_genres
 
@@ -39,6 +40,6 @@ async def genre_details(
     genre = await service.get_by_id(genre_id)
 
     if not genre:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="genre not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.GENRE_NOT_FOUND)
 
     return genre

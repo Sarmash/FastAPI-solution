@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import Any
 
+import core.http_exceptions as ex
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from models.filmwork import FilmWork
@@ -18,7 +19,7 @@ async def film_details(
     """Эндпоинт - /api/v1/films/{film_id} - возвращающий данные по фильму"""
     film = await service.get_by_id(film_id)
     if not film:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.FILM_NOT_FOUND)
     return film
 
 
@@ -44,14 +45,14 @@ async def related_films(
         if not genre:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                detail="no film with this genre was found",
+                detail=ex.FILM_BY_GENRE_NOT_FOUND,
             )
 
     films = await service.get_info_films(
         sort=sort, genre=genre, page_size=page_size, page_number=page_number
     )
     if not films:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.FILM_NOT_FOUND)
     return films
 
 
@@ -70,5 +71,5 @@ async def search_films(
         query=query, page_size=page_size, page_number=page_number
     )
     if not films:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.FILM_NOT_FOUND)
     return films

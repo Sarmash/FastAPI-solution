@@ -2,6 +2,7 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import Optional
 
+import core.http_exceptions as ex
 from aioredis import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
@@ -23,7 +24,7 @@ class GenreService(Service):
 
         if sort != "asc" and sort != "desc":
             raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST, detail="incorrect sorting format"
+                status_code=HTTPStatus.BAD_REQUEST, detail=ex.BAD_SORTING_FORMAT
             )
 
         from_ = 0 if page_number == 1 else page_number * page_size - page_size
