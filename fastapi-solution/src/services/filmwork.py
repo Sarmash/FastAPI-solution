@@ -28,8 +28,6 @@ class FilmService(Service):
         sort: Optional[str] = None,
         genre: Optional[Genre] = None,
         query: Optional[str] = None,
-        page_size: int = None,
-        page_number: int = None,
     ) -> list:
         """Работа с elasticsearch на получение данных о фильмах постранично"""
 
@@ -70,9 +68,7 @@ class FilmService(Service):
                 reverse=reverse,
             )
 
-        films = self.pagination(films_list, page_size, page_number)
-
-        return films
+        return films_list
 
 
 @lru_cache()
