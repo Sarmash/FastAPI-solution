@@ -30,7 +30,7 @@ class Paginator:
         page_size: int = Query(
             ge=0,
             le=100,
-            default=10,
+            default=50,
             alias="page[size]",
             description="Items amount on page",
         ),
