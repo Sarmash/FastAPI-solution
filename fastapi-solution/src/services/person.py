@@ -2,6 +2,7 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import List, Optional
 
+import core.http_exceptions as ex
 import elasticsearch.exceptions
 from aioredis import Redis
 from db.elastic import get_elastic
@@ -86,7 +87,7 @@ class PersonService(Service):
             person = await self.elastic.get(self.INDEX_PERSON, id_)
         except elasticsearch.exceptions.NotFoundError:
             raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND, detail="person not found"
+                status_code=HTTPStatus.NOT_FOUND, detail=ex.PERSON_NOT_FOUND
             )
 
         full_name = person["_source"]["full_name"]

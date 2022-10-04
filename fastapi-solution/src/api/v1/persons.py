@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import List, Optional
 
+import core.http_exceptions as ex
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Request
 from services.person import PersonService, get_person_service
@@ -19,7 +20,7 @@ async def person_list(
     """Эндпоинт - /api/v1/persons/<uuid:UUID>/film/ - возвращающий список, в которых участвовала персона"""
     list_person = await service.person_films(person_id)
     if not list_person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.FILM_NOT_FOUND)
     return list_person
 
 
@@ -38,7 +39,7 @@ async def search_person(
         query, paginator.page_size, paginator.page_number
     )
     if not list_person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.PAGE_NOT_FOUND)
     return list_person
 
 
@@ -54,5 +55,5 @@ async def person_details(
 
     person = await service.get_person_detail(person_id)
     if not person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.PERSON_NOT_FOUND)
     return person
