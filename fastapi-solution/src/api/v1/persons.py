@@ -5,6 +5,7 @@ from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Request
 from services.person import PersonService, get_person_service
 from services.service_base import Paginator
+
 router = APIRouter()
 
 
@@ -28,12 +29,14 @@ async def search_person(
     request: Request,
     query: str,
     service: PersonService = Depends(get_person_service),
-    paginator: Paginator = Depends()
+    paginator: Paginator = Depends(),
 ) -> list:
     """Эндпроинт - /api/v1/persons/search/?query=George&page=1&page_size=10 -
     возвращающий список совпадений по квери"""
 
-    list_person = await service.search_person(query, paginator.page_size, paginator.page_number)
+    list_person = await service.search_person(
+        query, paginator.page_size, paginator.page_number
+    )
     if not list_person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
     return list_person

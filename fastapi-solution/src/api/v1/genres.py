@@ -16,11 +16,13 @@ async def genre_list(
     request: Request,
     service: GenreService = Depends(get_genre_service),
     sort: str = Query(default="asc"),
-    pagtinator: Paginator = Depends()
+    paginator: Paginator = Depends(),
 ) -> list:
     """Эндпоинт - /api/v1/genres/ - возвращающий список жанров постранично"""
 
-    list_genres = await service.get_genres(pagtinator.page_size, pagtinator.page_number, sort)
+    list_genres = await service.get_genres(
+        paginator.page_size, paginator.page_number, sort
+    )
 
     if not list_genres:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="page not found")
