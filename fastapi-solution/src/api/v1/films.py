@@ -12,7 +12,12 @@ from services.service_base import Paginator
 router = APIRouter()
 
 
-@router.get("/{film_id}", response_model=FilmWork)
+@router.get("/{film_id}",
+            response_model=FilmWork,
+            summary="Возвращает данные по фильму",
+            description="Возвращает название фильма, рейтинг, описание,"
+                        "жанр(ы), список актеров, сценаристов и режиссеров",
+            )
 @cache
 async def film_details(
     request: Request, film_id: str, service: FilmService = Depends(get_film_service)
@@ -24,7 +29,9 @@ async def film_details(
     return film
 
 
-@router.get("/")
+@router.get("/",
+            summary="Возвращает список популярных фильмов",
+            description="Возвращает список популярных фильмов c названием и рейтингом",)
 @cache
 async def related_films(
     request: Request,
@@ -60,7 +67,11 @@ async def related_films(
     return films
 
 
-@router.get("/search/")
+@router.get(
+    "/search/",
+    summary="Возвращает список фильмов оп поиску",
+    description="Возвращает список фильмов оп поиску c названием и рейтингом",
+)
 @cache
 async def search_films(
     request: Request,

@@ -10,7 +10,11 @@ from services.service_base import Paginator
 router = APIRouter()
 
 
-@router.get("/{person_id}/film/")
+@router.get(
+    "/{person_id}/film/",
+    summary="Возвращает список фильмов, в которых участвует персона",
+    description="Возвращает список фильмов, в которых участвует персона (uuid, название и рейтинг)",
+)
 @cache
 async def person_list(
     request: Request,
@@ -24,7 +28,11 @@ async def person_list(
     return list_person
 
 
-@router.get("/search")
+@router.get(
+    "/search",
+    summary="Производит поиск по персонам",
+    description="Возвращает uuid, имя, роль и фильмы искомой персоны",
+)
 @cache
 async def search_person(
     request: Request,
@@ -43,7 +51,11 @@ async def search_person(
     return list_person
 
 
-@router.get("/{person_id}/")
+@router.get(
+    "/{person_id}/",
+    summary="Возвращает данные по конкретной персоне",
+    description="Возвращает данные по конкретной персоне: его uuid, имя, роль и фильмы, в которых он(а) принимал(а) участие",
+)
 @cache
 async def person_details(
     request: Request,
