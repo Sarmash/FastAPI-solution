@@ -42,3 +42,15 @@ class Paginator:
             )
         second_number = first_number + self.page_size
         return films[first_number:second_number]
+
+
+class Filter:
+    def __init__(
+        self,
+        filter_query: str = Query(
+            default=None,
+            alias="filter[genre]",
+            description="Genre id",
+        ),
+    ):
+        self.genre_id = filter_query
