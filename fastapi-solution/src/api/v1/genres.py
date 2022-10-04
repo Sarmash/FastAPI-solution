@@ -11,7 +11,14 @@ from services.service_base import Paginator
 router = APIRouter()
 
 
-@router.get("/")
+@router.get(
+    "/",
+    summary="Возвращает список жанров",
+    description="Возвращает список жанров. "
+                "Принимает параметр sort, по которому производится сортировка."
+                "Если параметр не передается, принимается дефолтное значение "
+                "<asc>, жарны будут отсортированы по алфавиту",
+)
 @cache
 async def genre_list(
     request: Request,
@@ -31,7 +38,12 @@ async def genre_list(
     return list_genres
 
 
-@router.get("/{genre_id}", response_model=Genre)
+@router.get(
+    "/{genre_id}",
+    response_model=Genre,
+    summary="Возвращает данные по конкретному жанру",
+    description="Возвращает данные по конкретному жанру (uuid, название)",
+)
 @cache
 async def genre_details(
     request: Request, genre_id: str, service: GenreService = Depends(get_genre_service)
