@@ -1,11 +1,10 @@
 import aioredis
-from elasticsearch import AsyncElasticsearch
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
-
 from api.v1 import films, genres, persons
 from core.config import default_settings
 from db import elastic, redis
+from elasticsearch import AsyncElasticsearch
+from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 
 app = FastAPI(
     title=default_settings.project_name,
@@ -18,11 +17,11 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup():
     redis.redis = await aioredis.create_redis_pool(
-        (default_settings.redis_host, default_settings.redis_port), minsize=10, maxsize=20
+        (default_settings.redis_host, default_settings.redis_port),
+        minsize=10,
+        maxsize=20,
     )
-    elastic.es = AsyncElasticsearch(
-        hosts=[default_settings.elasticsearch_connect]
-    )
+    elastic.es = AsyncElasticsearch(hosts=[default_settings.elasticsearch_connect])
 
 
 @app.on_event("shutdown")
