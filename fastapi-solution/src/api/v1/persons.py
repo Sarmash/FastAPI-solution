@@ -31,7 +31,8 @@ async def person_list(
 @router.get(
     "/search",
     summary="Производит поиск по персонам",
-    description="Возвращает uuid, имя, роль и фильмы искомой персоны",
+    description="Возвращает uuid, имя, роль и фильмы искомой персоны. "
+                "Принимает параметр query, по которому произваодится поиск"
 )
 @cache
 async def search_person(
