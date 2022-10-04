@@ -17,6 +17,17 @@ services:
       - "8000"
     networks:
       - apinet
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config:/etc/nginx/conf.d:ro
+    depends_on:
+      - fastapi
+    ports:
+      - "80:80"
+    networks:
+      - apinet
 
 networks:
   apinet:
