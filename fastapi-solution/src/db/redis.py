@@ -43,7 +43,9 @@ def cache(func):
             result_for_cache = json.dumps([model.json() for model in result_for_cache])
 
         await redis_client.set(
-            key=request, value=result_for_cache, expire=default_settings.redis_cache_expire_in_seconds
+            key=request,
+            value=result_for_cache,
+            expire=default_settings.redis_cache_expire_in_seconds,
         )
         return result
 
