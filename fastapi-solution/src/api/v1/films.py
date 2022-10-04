@@ -4,9 +4,9 @@ from typing import Any
 from db.redis import cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from models.filmwork import FilmWork
-from models.pagination import Paginator
 from services.filmwork import FilmService, get_film_service
 from services.genre import GenreService, get_genre_service
+from services.service_base import Paginator
 
 router = APIRouter()
 
