@@ -13,7 +13,7 @@ router = APIRouter()
 @router.get("/{film_id}", response_model=FilmWork)
 @cache
 async def film_details(
-    request: Request, film_id: str, service: FilmService = Depends(get_film_service)
+    film_id: str, service: FilmService = Depends(get_film_service)
 ) -> FilmWork:
     """Эндпоинт - /api/v1/films/{film_id} - возвращающий данные по фильму"""
     film = await service.get_by_id(film_id)
@@ -25,7 +25,6 @@ async def film_details(
 @router.get("/")
 @cache
 async def related_films(
-    request: Request,
     genre: str = Query(None, description="Similar films by genre"),
     sort: str = Query(
         default="-imdb_rating", description='Sorting by parameter "imdb_rating"'
@@ -58,7 +57,6 @@ async def related_films(
 @router.get("/search/")
 @cache
 async def search_films(
-    request: Request,
     query: Any = Query(..., description="What movie are we looking for?"),
     page_size: int = Query(default=50, gt=0, description="Number of movies per page."),
     page_number: int = Query(default=1, gt=0, description="Page number."),

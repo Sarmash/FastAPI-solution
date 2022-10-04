@@ -11,7 +11,6 @@ router = APIRouter()
 @router.get("/{person_id}/film/")
 @cache
 async def person_list(
-    request: Request,
     person_id: str,
     service: PersonService = Depends(get_person_service),
 ) -> list:
@@ -25,7 +24,6 @@ async def person_list(
 @router.get("/search/")
 @cache
 async def search_person(
-    request: Request,
     query: str,
     service: PersonService = Depends(get_person_service),
     page: int = Query(default=1, gt=0),
@@ -43,7 +41,6 @@ async def search_person(
 @router.get("/{person_id}/")
 @cache
 async def person_details(
-    request: Request,
     person_id: str,
     service: PersonService = Depends(get_person_service),
 ) -> Optional[List]:

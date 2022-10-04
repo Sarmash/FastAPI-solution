@@ -13,20 +13,15 @@ async def get_redis() -> Redis:
 
 
 def cache(func):
-    """Декоратор для кеширования в редис, ключ - URL запроса.
-    Для корректной работы декоратора в параметрах функции ендпоинта,
-    должен быть fastapi Request
-    def endpoint(some_parameters, request: Request)
-        some logic
-        return some_result
-    """
+    """Декоратор для кеширования в редис,
+    в качестве ключа используется имя функции и её параметры"""
 
     @wraps(func)
     async def inner(**kwargs):
-        request = str(kwargs["request"].url)
+        key = f"{func.__name__}/{kwargs}"
         redis_client = kwargs["service"].redis
 
-        data = await redis_client.get(request)
+        data = await redis_client.get(key)
         if data is not None:
             data_from_redis = json.loads(data)
             if isinstance(data_from_redis, list):
@@ -43,7 +38,7 @@ def cache(func):
             result_for_cache = json.dumps([model.json() for model in result_for_cache])
 
         await redis_client.set(
-            key=request, value=result_for_cache, expire=default_settings.redis_cache_expire_in_seconds
+            key=key, value=result_for_cache, expire=default_settings.redis_cache_expire_in_seconds
         )
         return result
 
