@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Any
 
 import core.http_exceptions as ex
-from db.redis import cache
+from db.redis import Cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from models.filmwork import FilmWork
 from services.filmwork import FilmService, get_film_service
@@ -18,7 +18,7 @@ router = APIRouter()
             description="Возвращает название фильма, рейтинг, описание,"
                         "жанр(ы), список актеров, сценаристов и режиссеров",
             )
-@cache
+@Cache()
 async def film_details(
     request: Request, film_id: str, service: FilmService = Depends(get_film_service)
 ) -> FilmWork:
@@ -32,7 +32,7 @@ async def film_details(
 @router.get("/",
             summary="Возвращает список популярных фильмов",
             description="Возвращает список популярных фильмов c названием и рейтингом",)
-@cache
+@Cache()
 async def related_films(
     request: Request,
     sort: str = Query(
@@ -70,7 +70,7 @@ async def related_films(
     summary="Возвращает список фильмов оп поиску",
     description="Возвращает список фильмов оп поиску c названием и рейтингом",
 )
-@cache
+@Cache()
 async def search_films(
     request: Request,
     query: Any = Query(..., description="What movie are we looking for?"),
