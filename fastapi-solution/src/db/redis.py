@@ -4,7 +4,7 @@ from typing import Optional
 
 from aioredis import Redis
 from core.config import default_settings
-
+from core.logger import logger
 redis: Optional[Redis] = None
 
 
@@ -23,7 +23,12 @@ def cache(func):
 
     @wraps(func)
     async def inner(**kwargs):
-        request = str(kwargs["request"].url)
+        request = kwargs.get("request")
+        if request is None:
+            logger.warn("Декоратор кеширования не работает, отсутствует переменная request")
+            return await func(**kwargs)
+
+        request = str(request.url)
         redis_client = kwargs["service"].redis
 
         data = await redis_client.get(request)
