@@ -3,6 +3,10 @@ import asyncio
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.helpers import async_bulk
 
+GENRES = ({'genre': 'Drama', 'id': '1cacff68-643e-4ddd-8f57-84b62538081a'},
+          {'genre': 'Adventure', 'id': '120a21cf-9097-479e-904a-13dd7198c1dd'},
+          {'genre': 'Animation', 'id': '6a0a479b-cfec-41ac-b520-41b2b007b611'})
+
 
 async def filling():
     genres = [{'genre': 'Sci-Fi', 'id': '6c162475-c7ed-4461-9184-001ef3d9f26e'},
