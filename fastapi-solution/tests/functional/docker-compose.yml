@@ -1,0 +1,29 @@
+version: '3.6'
+services:
+  redis:
+    image: "redis:alpine"
+    hostname: redis
+    ports:
+      - "6379"
+  fastapi:
+    build: ../../src
+    image: fastapi-solution-fastapi
+    depends_on:
+      - redis
+    ports:
+      - "8000"
+  elasticsearch:
+    image: elasticsearch:7.17.6
+    ports:
+      - "9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
+  tests:
+    image: fastapi-solution-fastapi
+    entrypoint: >
+      sh -c "pip install -r /tests/functional/requirements.txt
+      && python3 /tests/functional/utils/wait_for_es.py
+      && python3 /tests/functional/utils/wait_for_redis.py
+      && pytest /tests/functional/src"
