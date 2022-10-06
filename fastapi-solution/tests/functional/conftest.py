@@ -1,5 +1,4 @@
 import asyncio
-import json
 from typing import List
 
 import aiohttp
@@ -7,6 +6,7 @@ import pytest
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 
+from .base_function import get_es_bulk_query
 from .settings import test_settings
 
 
@@ -35,18 +35,9 @@ async def session_client():
 @pytest.fixture
 def es_write_data(es_client):
     async def inner(data: List[dict]):
-        bulk_query = []
-        for row in data:
-            id = row[test_settings.es_id_field]
-            bulk_query.extend(
-                [
-                    json.dumps(
-                        {"index": {"_index": test_settings.es_index, "_id": id}}
-                    ),
-                    json.dumps(row),
-                ]
-            )
-        # bulk_query = get_es_bulk_query(data, test_settings.es_index, test_settings.es_id_field)
+        bulk_query = get_es_bulk_query(
+            data, test_settings.es_index, test_settings.es_id_field
+        )
         str_query = "\n".join(bulk_query) + "\n"
 
         response = await es_client.bulk(str_query, refresh=True)
@@ -61,6 +52,7 @@ def make_get_request(session_client: aiohttp.ClientSession):
     async def session(url: str, query_data: dict):
         url_address = test_settings.service_url + url
         response = await session_client.get(url_address, params=query_data)
+
         return response
 
     return session
