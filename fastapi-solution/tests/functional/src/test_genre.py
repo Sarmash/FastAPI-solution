@@ -30,15 +30,22 @@ async def test_genre_list_200(http_client, elastic_client, redis_client):
            {i['genre'] for i in response_redis}
 
 
+@pytest.mark.parametrize(
+    "response, code_result", [
+        ("http://fastapi:8000/api/v1/genres/?page[number]=0&page[size]=5", 422),
+        ("http://fastapi:8000/api/v1/genres/?page[number]=-1&page[size]=5", 422)
+    ]
+)
 @pytest.mark.asyncio
-async def test_genre_list_422(http_client):
-    response_api = await http_client.get("http://fastapi:8000/api/v1/genres/?page[number]=0&page[size]=5")
-    assert response_api.status == 422
+async def test_genre_list_422(http_client, response, code_result):
+    response_api = await http_client.get(response)
+    assert response_api.status == code_result
 
-    response_api = await http_client.get("http://fastapi:8000/api/v1/genres/?page[number]=-1&page[size]=5")
-    assert response_api.status == 422
+    response_api = await http_client.get(response)
+    assert response_api.status == code_result
 
 
+@pytest.mark.asyncio
 async def test_genre_list_404(http_client):
     response_api = await http_client.get("http://fastapi:8000/api/v1/genres/?page[number]=10&page[size]=10")
     assert response_api.status == 404
