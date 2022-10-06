@@ -72,3 +72,9 @@ async def test_genre_by_id_200(http_client, elastic_client, redis_client, genre_
     response_redis = json.loads(response_redis)
 
     assert response_api['id'] == response_elastic['id'] == response_redis['id']
+
+
+@pytest.mark.asyncio
+async def test_genre_by_id_404(http_client, elastic_client, redis_client):
+    response_api = await http_client.get(f"http://fastapi:8000/api/v1/genres/bad_genre_id")
+    assert response_api.status == 404
