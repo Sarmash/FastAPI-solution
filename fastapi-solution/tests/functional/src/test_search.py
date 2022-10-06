@@ -1,11 +1,6 @@
-import json
 import uuid
 
-import aiohttp
 import pytest
-from elasticsearch import AsyncElasticsearch
-
-from ..settings import test_settings
 
 
 @pytest.mark.parametrize(
@@ -16,7 +11,7 @@ from ..settings import test_settings
     ],
 )
 @pytest.mark.asyncio
-async def test_search(query_data, expected_answer):
+async def test_search(make_get_request, es_write_data, query_data, expected_answer):
     es_data = [
         {
             "id": str(uuid.uuid4()),
@@ -35,37 +30,18 @@ async def test_search(query_data, expected_answer):
         }
         for _ in range(60)
     ]
+    await es_write_data(es_data)
 
-    bulk_query = []
-    for row in es_data:
-        id = row[test_settings.es_id_field]
-        bulk_query.extend(
-            [
-                json.dumps({"index": {"_index": test_settings.es_index, "_id": id}}),
-                json.dumps(row),
-            ]
-        )
+    response = await make_get_request("films/search/", query_data)
 
-    str_query = "\n".join(bulk_query) + "\n"
-
-    es_client = AsyncElasticsearch(
-        hosts=test_settings.es_host,
-        validate_cerl=False,
-        use_ssl=False,
-    )
-    response = await es_client.bulk(str_query, refresh=True)
-    await es_client.close()
-    if response["errors"]:
-        raise Exception("Ошибка записи данных в Elasticsearch")
-
-    session = aiohttp.ClientSession()
-    url = test_settings.service_url + "films/search/"
-    query = query_data
-    async with session.get(url, params=query) as response:
-        body = await response.json()
-        # headers = response.json()
-        status = response.status
-    await session.close()
-
-    assert status == expected_answer["status"]
-    assert len(body) == expected_answer["length"]
+    # session = aiohttp.ClientSession()
+    # url = test_settings.service_url + "films/search/"
+    # query = query_data
+    # async with session.get(url, params=query) as response:
+    #     body = await response.json()
+    #     # headers = response.json()
+    #     status = response.status
+    # await session.close()
+    #
+    assert response.status == expected_answer["status"]
+    assert response.json == expected_answer["length"]
