@@ -4,7 +4,7 @@ from elasticsearch import AsyncElasticsearch
 from aioredis import create_redis_pool
 
 
-@fixture(scope='session')
+@fixture(scope='function')
 async def http_client():
     session = ClientSession()
     yield session
@@ -23,4 +23,4 @@ async def redis_client():
     client = await create_redis_pool(
         ('redis', 6379)
     )
-    yield client
+    yield client  #TODO разобраться с клозом клиента
