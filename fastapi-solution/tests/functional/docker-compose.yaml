@@ -31,7 +31,10 @@ services:
     links:
       - fastapi
       - elasticsearch
+    depends_on:
+      - fastapi
     entrypoint: >
       sh -c "python3 utils/wait_for_es.py
       && python3 utils/wait_for_redis.py
+      && sh testdata/create_elastic_index.sh
       && pytest src"
