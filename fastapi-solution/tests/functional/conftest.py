@@ -59,7 +59,7 @@ def make_get_request(session_client: aiohttp.ClientSession):
     return session
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def redis_client():
     client = await create_redis_pool(
         ('redis', 6379)
