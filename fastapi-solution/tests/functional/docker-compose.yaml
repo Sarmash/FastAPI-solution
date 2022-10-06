@@ -1,0 +1,37 @@
+version: '3'
+services:
+  elasticsearch:
+    image: elasticsearch:7.17.6
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
+
+  redis:
+    image: "redis:alpine"
+    hostname: redis
+    ports:
+      - "6379:6379"
+
+  fastapi:
+    build: ../../src
+    image: fastapi
+    depends_on:
+      - redis
+    env_file:
+      - ../../src/core/.dev.env
+    ports:
+      - "8000:8000"
+
+  tests:
+    build:
+      .
+    links:
+      - fastapi
+      - elasticsearch
+    entrypoint: >
+      sh -c "python3 utils/wait_for_es.py
+      && python3 utils/wait_for_redis.py
+      && pytest src"
