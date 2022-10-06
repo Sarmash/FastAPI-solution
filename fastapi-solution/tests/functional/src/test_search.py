@@ -8,8 +8,15 @@ from elasticsearch import AsyncElasticsearch
 from ..settings import test_settings
 
 
+@pytest.mark.parametrize(
+    "query_data, expected_answer",
+    [
+        ({"query": "The Star"}, {"status": 200, "length": 50}),
+        ({"query": "Mashed potato"}, {"status": 404, "length": 1}),
+    ],
+)
 @pytest.mark.asyncio
-async def test_search():
+async def test_search(query_data, expected_answer):
     es_data = [
         {
             "id": str(uuid.uuid4()),
@@ -52,13 +59,13 @@ async def test_search():
         raise Exception("Ошибка записи данных в Elasticsearch")
 
     session = aiohttp.ClientSession()
-    url = test_settings.service_url + "films/"
-    query_data = {"sort": "-imdb_rating", "page[size]": 50, "page[number]": 1}
-    async with session.get(url, params=query_data) as response:
+    url = test_settings.service_url + "films/search/"
+    query = query_data
+    async with session.get(url, params=query) as response:
         body = await response.json()
         # headers = response.json()
         status = response.status
     await session.close()
 
-    assert status == 200
-    assert len(body) == 50
+    assert status == expected_answer["status"]
+    assert len(body) == expected_answer["length"]
