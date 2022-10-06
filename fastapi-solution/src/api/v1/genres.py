@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Optional
 
 import core.http_exceptions as ex
-from db.redis import cache
+from db.redis import Cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from models.genre import Genre
 from services.genre import GenreService, get_genre_service
@@ -19,7 +19,7 @@ router = APIRouter()
                 "Если параметр не передается, принимается дефолтное значение "
                 "<asc>, жарны будут отсортированы по алфавиту",
 )
-@cache
+@Cache()
 async def genre_list(
     request: Request,
     service: GenreService = Depends(get_genre_service),
@@ -44,7 +44,7 @@ async def genre_list(
     summary="Возвращает данные по конкретному жанру",
     description="Возвращает данные по конкретному жанру (uuid, название)",
 )
-@cache
+@Cache()
 async def genre_details(
     request: Request, genre_id: str, service: GenreService = Depends(get_genre_service)
 ) -> Optional[Genre]:

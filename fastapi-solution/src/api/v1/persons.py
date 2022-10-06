@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import List, Optional
 
 import core.http_exceptions as ex
-from db.redis import cache
+from db.redis import Cache
 from fastapi import APIRouter, Depends, HTTPException, Request
 from services.person import PersonService, get_person_service
 from services.service_base import Paginator
@@ -15,7 +15,7 @@ router = APIRouter()
     summary="Возвращает список фильмов, в которых участвует персона",
     description="Возвращает список фильмов, в которых участвует персона (uuid, название и рейтинг)",
 )
-@cache
+@Cache()
 async def person_list(
     request: Request,
     person_id: str,
@@ -34,7 +34,7 @@ async def person_list(
     description="Возвращает uuid, имя, роль и фильмы искомой персоны. "
                 "Принимает параметр query, по которому произваодится поиск"
 )
-@cache
+@Cache()
 async def search_person(
     request: Request,
     query: str,
@@ -58,7 +58,7 @@ async def search_person(
     description="Возвращает данные по конкретной персоне: его uuid, имя, роль"
                 "и фильмы, в которых он(а) принимал(а) участие",
 )
-@cache
+@Cache()
 async def person_details(
     request: Request,
     person_id: str,
