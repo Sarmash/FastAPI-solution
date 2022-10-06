@@ -7,12 +7,12 @@ from ..testdata.filling_elastic_genre import GENRES
 
 
 @pytest.mark.asyncio
-async def test_genre_list_200(http_client, elastic_client, redis_client):
-    response_api = await http_client.get("http://fastapi:8000/api/v1/genres/")
+async def test_genre_list_200(session_client, es_client, redis_client):
+    response_api = await session_client.get("http://fastapi:8000/api/v1/genres/")
     assert response_api.status == 200
     response_api = await response_api.json()
 
-    response_elastic = await elastic_search_list(client=elastic_client,
+    response_elastic = await elastic_search_list(client=es_client,
                                                  index='genres',
                                                  size=50)
 
@@ -38,17 +38,17 @@ async def test_genre_list_200(http_client, elastic_client, redis_client):
     ]
 )
 @pytest.mark.asyncio
-async def test_genre_list_422(http_client, response, code_result):
-    response_api = await http_client.get(response)
+async def test_genre_list_422(session_client, response, code_result):
+    response_api = await session_client.get(response)
     assert response_api.status == code_result
 
-    response_api = await http_client.get(response)
+    response_api = await session_client.get(response)
     assert response_api.status == code_result
 
 
 @pytest.mark.asyncio
-async def test_genre_list_404(http_client):
-    response_api = await http_client.get("http://fastapi:8000/api/v1/genres/?page[number]=10&page[size]=10")
+async def test_genre_list_404(session_client):
+    response_api = await session_client.get("http://fastapi:8000/api/v1/genres/?page[number]=10&page[size]=10")
     assert response_api.status == 404
 
 
@@ -60,12 +60,12 @@ async def test_genre_list_404(http_client):
     ]
 )
 @pytest.mark.asyncio
-async def test_genre_by_id_200(http_client, elastic_client, redis_client, genre_id, status_code):
-    response_api = await http_client.get(f"http://fastapi:8000/api/v1/genres/{genre_id}")
+async def test_genre_by_id_200(session_client, es_client, redis_client, genre_id, status_code):
+    response_api = await session_client.get(f"http://fastapi:8000/api/v1/genres/{genre_id}")
     assert response_api.status == status_code
     response_api = await response_api.json()
 
-    response_elastic = await elastic_search_by_id(elastic_client, 'genres', genre_id)
+    response_elastic = await elastic_search_by_id(es_client, 'genres', genre_id)
 
     response_redis = await redis_client.get(f"http://fastapi:8000/api/v1/genres/{genre_id}")
     assert isinstance(response_redis, bytes)
@@ -75,6 +75,6 @@ async def test_genre_by_id_200(http_client, elastic_client, redis_client, genre_
 
 
 @pytest.mark.asyncio
-async def test_genre_by_id_404(http_client, elastic_client, redis_client):
-    response_api = await http_client.get(f"http://fastapi:8000/api/v1/genres/bad_genre_id")
+async def test_genre_by_id_404(session_client):
+    response_api = await session_client.get(f"http://fastapi:8000/api/v1/genres/bad_genre_id")
     assert response_api.status == 404
