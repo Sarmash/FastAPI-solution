@@ -25,7 +25,7 @@ class Paginator:
         ),
         page_number: int = Query(
             default=1,
-            ge=0,
+            ge=1,
             alias="page[number]",
             description="Page number for pagination",
         ),
