@@ -12,5 +12,8 @@ class TestSettings(BaseSettings):
 
     service_url: str = "http://fastapi:8000/api/v1/"
 
+    genres_index: str = "genres"
+    genres_endpoint: str = "genres/"
+
 
 test_settings = TestSettings()

@@ -8,7 +8,7 @@ from aioredis import ConnectionsPool
 async def elastic_search_list(
         client: AsyncElasticsearch,
         index: str,
-        size: str) -> list[dict]:
+        size: int = 50) -> list[dict]:
     """Запрос в еластик на получение списка данных"""
 
     response_elastic = await client.search(index=index, size=size)
