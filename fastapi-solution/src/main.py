@@ -1,10 +1,12 @@
 import aioredis
-from api.v1 import films, genres, persons
-from core.config import default_settings
-from db import elastic, redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+
+from api.v1 import films, genres, persons
+from core.backoff import backoff
+from core.config import default_settings
+from db import elastic, redis
 
 app = FastAPI(
     title=default_settings.project_name,
@@ -15,6 +17,7 @@ app = FastAPI(
 
 
 @app.on_event("startup")
+@backoff()
 async def startup():
     redis.redis = await aioredis.create_redis_pool(
         (default_settings.redis_host, default_settings.redis_port),
