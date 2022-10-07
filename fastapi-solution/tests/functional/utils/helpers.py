@@ -2,7 +2,7 @@ import json
 from typing import Union
 
 from elasticsearch import AsyncElasticsearch
-from aioredis import ConnectionsPool
+from aioredis import RedisConnection
 
 
 async def elastic_search_list(
@@ -26,11 +26,11 @@ async def elastic_search_by_id(
     return response_elastic["_source"]
 
 
-async def redis_get(client: ConnectionsPool,
+async def redis_get(client: RedisConnection,
                     key: str) -> Union[list[dict], dict]:
     """Запрос в редис на получение данных по ключу"""
 
-    response = await client.get(key)
+    response = await client.execute("GET", key)
     assert isinstance(response, bytes)
     response = json.loads(response)
     if isinstance(response, list):

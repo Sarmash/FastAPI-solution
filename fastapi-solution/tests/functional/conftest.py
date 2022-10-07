@@ -6,7 +6,7 @@ import pytest
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 
-from aioredis import create_redis_pool
+from aioredis import create_connection
 from .base_function import get_es_bulk_query
 from .settings import test_settings
 
@@ -17,6 +17,15 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest_asyncio.fixture(scope="session")
+async def redis_client():
+    client = await create_connection(
+        (test_settings.redis_host, test_settings.redis_port)
+    )
+    yield client
+    client.close()
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -57,12 +66,3 @@ def make_get_request(session_client: aiohttp.ClientSession):
         return response
 
     return session
-
-
-@pytest_asyncio.fixture(scope="session")
-async def redis_client():
-    client = await create_redis_pool(
-        (test_settings.redis_host, test_settings.redis_port)
-    )
-    yield client
-    client.close()
