@@ -6,6 +6,8 @@ from aioredis import Redis
 from core.config import default_settings
 from core.logger import logger
 
+from core.backoff import backoff
+
 redis: Optional[Redis] = None
 
 
@@ -45,6 +47,7 @@ class Cache:
                 return some_result
             """
 
+        @backoff()
         @wraps(func)
         async def inner(**kwargs):
             request = kwargs.get("request")
