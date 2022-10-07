@@ -37,7 +37,7 @@ async def session_client():
 def es_write_data(es_client):
     async def inner(data: List[dict]):
         bulk_query = get_es_bulk_query(
-            data, test_settings.es_index, test_settings.es_id_field
+            data, test_settings.movies_index, test_settings.movies_id_field
         )
         str_query = "\n".join(bulk_query) + "\n"
 
@@ -62,7 +62,7 @@ def make_get_request(session_client: aiohttp.ClientSession):
 @pytest_asyncio.fixture(scope="session")
 async def redis_client():
     client = await create_redis_pool(
-        ('redis', 6379)
+        (test_settings.redis_host, test_settings.redis_port)
     )
     yield client
     client.close()

@@ -8,7 +8,9 @@ GENRES = ({'genre': 'Drama', 'id': '1cacff68-643e-4ddd-8f57-84b62538081a'},
           {'genre': 'Animation', 'id': '6a0a479b-cfec-41ac-b520-41b2b007b611'})
 
 
-async def filling():
+async def genres_index_filling():
+    """Функция заполнения индекса жанров тестовыми данными"""
+
     genres = [{'genre': 'Sci-Fi', 'id': '6c162475-c7ed-4461-9184-001ef3d9f26e'},
               {'genre': 'Action', 'id': '3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff'},
               {'genre': 'Comedy', 'id': '5373d043-3f41-4ea8-9947-4b746c601bbd'},
@@ -51,4 +53,4 @@ async def filling():
 
 
 if __name__ == "__main__":
-    asyncio.run(filling())
+    asyncio.run(genres_index_filling())
