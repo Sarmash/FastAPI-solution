@@ -5,6 +5,7 @@ class TestSettings(BaseSettings):
     es_host: str = Field("http://elasticsearch:9200/", env="ELASTIC_HOST")
 
     movies_index: str = "movies"
+    movies_endpoint: str = "films/"
     movies_id_field: str = "id"
 
     redis_host: str = Field("redis", env="REDIS_HOST")
