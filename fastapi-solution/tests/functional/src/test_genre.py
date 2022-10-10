@@ -1,7 +1,7 @@
 import pytest
 
 from ..settings import test_settings
-from ..testdata.filling_elastic_genre import GENRES
+from ..testdata.filling_elastic_genre import GENRES, genres_index_filling
 from ..utils.helpers import elastic_search_by_id, elastic_search_list, redis_get
 
 
@@ -9,6 +9,8 @@ from ..utils.helpers import elastic_search_by_id, elastic_search_list, redis_get
 async def test_genre_list_200(session_client, es_client, redis_client):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
+    await genres_index_filling()
+
     response_api = await session_client.get(
         f"{test_settings.service_url}{test_settings.genres_endpoint}"
     )
