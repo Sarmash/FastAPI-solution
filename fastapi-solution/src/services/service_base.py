@@ -8,6 +8,11 @@ from fastapi import HTTPException, Query
 class Service:
     """Родительский класс для сервисов"""
 
+    INDEX_MOVIES = "movies"
+    INDEX_PERSONS = "persons"
+    INDEX_GENRES = "genres"
+    INDEX_SIMILAR = "genre"
+
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
         self.redis = redis
         self.elastic = elastic

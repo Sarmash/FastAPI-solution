@@ -4,9 +4,9 @@ from typing import Optional
 
 import core.http_exceptions as ex
 from aioredis import Redis
-from db.elastic import get_elastic
+from db.elastic import ElasticDB, get_elastic
 from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import AsyncElasticsearch
 from fastapi import Depends, HTTPException
 from models.genre import Genre
 from services.service_base import Service
@@ -14,8 +14,6 @@ from services.service_base import Service
 
 class GenreService(Service):
     """Сервис обработки запросов связанных с жанрами"""
-
-    INDEX = "genres"
 
     async def get_genres(
         self, page_size: int, page_number: int, sort: str = "asc"
@@ -32,7 +30,7 @@ class GenreService(Service):
         body = {"sort": {"genre": {"order": sort}}}
 
         raw_genres = await self.elastic.search(
-            index=self.INDEX, size=page_size, body=body, from_=from_
+            index=self.INDEX_GENRES, size=page_size, body=body, from_=from_
         )
 
         genres = [Genre(**genre["_source"]) for genre in raw_genres["hits"]["hits"]]
@@ -41,12 +39,9 @@ class GenreService(Service):
 
     async def get_by_id(self, genre_id: str) -> Optional[Genre]:
         """Запрос elasticsearch для получения информации по id жанра"""
-
-        try:
-            raw_genre = await self.elastic.get(self.INDEX, genre_id)
-        except NotFoundError:
-            return
-        return Genre(**raw_genre["_source"])
+        return await ElasticDB(Genre, self.elastic, self.INDEX_GENRES).get_by_id(
+            genre_id
+        )
 
 
 @lru_cache()
