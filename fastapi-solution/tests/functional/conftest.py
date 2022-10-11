@@ -1,12 +1,13 @@
 import asyncio
+import json
 from typing import List
 
 import aiohttp
 import pytest
 import pytest_asyncio
+from aioredis import create_connection
 from elasticsearch import AsyncElasticsearch
 
-from aioredis import create_connection
 from .base_function import get_es_bulk_query
 from .settings import test_settings
 
@@ -53,20 +54,33 @@ def es_write_data(es_client):
         response = await es_client.bulk(str_query, refresh=True)
         if response["errors"]:
             raise Exception("Ошибка записи данных в Elasticsearch")
+
     return inner
 
 
 @pytest.fixture
 def es_write_persons(es_client):
-    async def gen_data_persons(data: List[dict]):
-        bulk_query = get_es_bulk_query(
-            data, test_settings.persons_index, test_settings.persons_id_field
-        )
-        str_query = '\n'.join(bulk_query) + '\n'
+    async def gen_data_persons(es_data_persons: List[dict]):
+        bulk_query_perons = []
+        for row in es_data_persons:
+            bulk_query_perons.extend(
+                [
+                    json.dumps(
+                        {
+                            "index": {
+                                "_index": test_settings.persons_index,
+                                "_id": row[test_settings.persons_id_field],
+                            }
+                        }
+                    ),
+                    json.dumps(row),
+                ]
+            )
+        str_query = "\n".join(bulk_query_perons) + "\n"
         response = await es_client.bulk(str_query, refresh=True)
-        await es_client.close()
-        if response['errors']:
-            raise Exception('Ошибка записи данных в Elasticsearch')
+        if response["errors"]:
+            raise Exception("Ошибка записи данных в Elasticsearch")
+
     return gen_data_persons
 
 
