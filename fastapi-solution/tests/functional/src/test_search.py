@@ -1,6 +1,5 @@
 import pytest
 from ..testdata.http_exeptions import FILM_NOT_FOUND
-from ..testdata.filling_elastic_genre import genres_index_filling
 from ..settings import test_settings
 from ..utils.helpers import redis_get, elastic_search_list, http_request
 
@@ -13,7 +12,7 @@ async def test_films_search_200(
     session_client, es_client, redis_client, query, status_code
 ):
     """
-    Проверка поиска фильмов по актеру, сценаристу, части описаня и части названия.
+    Проверка поиска фильмов по актеру, сценаристу, части описания и части названия.
     Проверка совпадения ответа от сервиса и данных в еластике, так же проверка записи
     полученных данных в Редис
 
@@ -22,7 +21,6 @@ async def test_films_search_200(
     Часть описания = 'who'
     Часть заголовка = star
     """
-    await genres_index_filling()
     request_url = (
         f"{test_settings.service_url}"
         f"{test_settings.search_films_endpoint}"
@@ -186,6 +184,4 @@ async def test_person_search_404(session_client, query, status_code, es_delete_d
     response_api = await http_request(session_client, request_url, status_code)
 
     assert response_api["detail"] == FILM_NOT_FOUND
-    es_delete_data(index=test_settings.movies_index)
-    es_delete_data(index=test_settings.persons_index)
-    es_delete_data(index=test_settings.genres_index)
+    await es_delete_data(index=test_settings.movies_index)

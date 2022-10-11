@@ -1,7 +1,6 @@
-import asyncio
+import time
 
-from elasticsearch import AsyncElasticsearch
-from elasticsearch.helpers import async_bulk
+from elasticsearch import Elasticsearch, helpers
 
 GENRES = (
     {"genre": "Drama", "id": "1cacff68-643e-4ddd-8f57-84b62538081a"},
@@ -10,7 +9,7 @@ GENRES = (
 )
 
 
-async def genres_index_filling():
+def filling_indexes():
     """Функция заполнения индекса жанров тестовыми данными"""
 
     genres = [
@@ -386,7 +385,7 @@ async def genres_index_filling():
         {"full_name": "Edward Kilham", "id": "567bedb8-982c-444a-af7d-df47cac1906d"},
     ]
 
-    client = AsyncElasticsearch(hosts=["http://elasticsearch:9200"])
+    client = Elasticsearch("http://elasticsearch:9200")
     genres_for_bulk = [
         {
             "_index": "genres",
@@ -397,7 +396,7 @@ async def genres_index_filling():
         }
         for genre in genres
     ]
-    await async_bulk(client, genres_for_bulk)
+    helpers.bulk(client, genres_for_bulk)
 
     movies_for_bulk = [
         {
@@ -418,7 +417,7 @@ async def genres_index_filling():
         for film in films
     ]
 
-    await async_bulk(client, movies_for_bulk)
+    helpers.bulk(client, movies_for_bulk)
 
     persons_for_bulk = [
         {
@@ -431,9 +430,6 @@ async def genres_index_filling():
         for person in persons
     ]
 
-    await async_bulk(client, persons_for_bulk)
-    await client.close()
-
-
-if __name__ == "__main__":
-    asyncio.run(genres_index_filling())
+    helpers.bulk(client, persons_for_bulk)
+    time.sleep(1)
+    client.close()

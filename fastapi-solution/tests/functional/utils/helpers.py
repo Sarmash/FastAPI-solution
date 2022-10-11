@@ -1,5 +1,5 @@
 import json
-from typing import Union
+from typing import Union, List
 
 from aioredis import RedisConnection
 from elasticsearch import AsyncElasticsearch
@@ -8,7 +8,7 @@ from aiohttp import ClientSession
 
 async def elastic_search_list(
     client: AsyncElasticsearch, index: str, size: int = 50, body: dict = None
-) -> list[dict]:
+) -> List[dict]:
     """Запрос в еластик на получение списка данных"""
 
     response_elastic = await client.search(index=index, size=size, body=body)
@@ -25,7 +25,7 @@ async def elastic_search_by_id(
     return response_elastic["_source"]
 
 
-async def redis_get(client: RedisConnection, key: str) -> Union[list[dict], dict]:
+async def redis_get(client: RedisConnection, key: str) -> Union[List[dict], dict]:
     """Запрос в редис на получение данных по ключу"""
 
     response = await client.execute("GET", key)
