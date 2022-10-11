@@ -1,8 +1,7 @@
-import aiohttp
 import pytest
 
 from ..settings import test_settings
-from ..utils.helpers import elastic_search_list, elastic_search_by_id, redis_get
+from ..utils.helpers import elastic_search_by_id, redis_get
 
 service_url: str = 'http://localhost:8000/api/v1/persons/search'
 
@@ -58,7 +57,7 @@ async def test_person(es_write_persons, session_client, es_client,
         )]
 )
 @pytest.mark.asyncio
-async def test_person(session_client, query_data, expected_answer):
+async def test_person_not_found(session_client, query_data, expected_answer):
     """
     Тест запроса несуществующей персоны
     """

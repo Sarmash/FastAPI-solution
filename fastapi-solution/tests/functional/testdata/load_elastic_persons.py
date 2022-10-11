@@ -1,5 +1,4 @@
 import asyncio
-import uuid
 import json
 
 from elasticsearch import AsyncElasticsearch
