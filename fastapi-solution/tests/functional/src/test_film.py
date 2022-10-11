@@ -49,7 +49,6 @@ async def test_films_list_200(
         for _ in (response_films, redis_films, elastic_films)
     ]
     pairs = zip(response_films, redis_films, elastic_films)
-    s = list(pairs)
     result = True if all(x == y and x == z for x, y, z in pairs) else False
     await es_delete_data(test_settings.movies_index)
     await redis_delete_fixture(url)

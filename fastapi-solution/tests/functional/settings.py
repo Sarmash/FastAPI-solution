@@ -19,7 +19,7 @@ class TestSettings(BaseSettings):
     search_persons_endpoint: str = "persons/search"
     search_films_endpoint: str = "films/search/"
 
-    persons_index: str = 'persons'
+    persons_index: str = "persons"
 
 
 test_settings = TestSettings()
