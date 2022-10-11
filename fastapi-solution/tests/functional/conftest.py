@@ -1,4 +1,5 @@
 import asyncio
+import json
 from typing import List
 
 import aiohttp
@@ -53,8 +54,21 @@ def es_write_data(es_client):
         response = await es_client.bulk(str_query, refresh=True)
         if response["errors"]:
             raise Exception("Ошибка записи данных в Elasticsearch")
-
     return inner
+
+
+@pytest.fixture
+def es_write_persons(es_client):
+    async def gen_data_persons(data: List[dict]):
+        bulk_query = get_es_bulk_query(
+            data, test_settings.persons_index, test_settings.persons_id_field
+        )
+        str_query = '\n'.join(bulk_query) + '\n'
+        response = await es_client.bulk(str_query, refresh=True)
+        await es_client.close()
+        if response['errors']:
+            raise Exception('Ошибка записи данных в Elasticsearch')
+    return gen_data_persons
 
 
 @pytest.fixture

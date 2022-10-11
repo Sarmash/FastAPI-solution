@@ -15,5 +15,9 @@ class TestSettings(BaseSettings):
     genres_index: str = "genres"
     genres_endpoint: str = "genres/"
 
+    persons_index: str = "persons"
+    persons_id_field: str = "id"
+    persons_endpoint: str = "persons/"
+
 
 test_settings = TestSettings()
