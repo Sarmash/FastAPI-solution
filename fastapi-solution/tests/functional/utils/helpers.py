@@ -1,16 +1,17 @@
 import json
-from typing import Union
+from typing import Union, List
 
 from aioredis import RedisConnection
 from elasticsearch import AsyncElasticsearch
+from aiohttp import ClientSession
 
 
 async def elastic_search_list(
-    client: AsyncElasticsearch, index: str, size: int = 50
-) -> list[dict]:
+    client: AsyncElasticsearch, index: str, size: int = 50, body: dict = None
+) -> List[dict]:
     """Запрос в еластик на получение списка данных"""
 
-    response_elastic = await client.search(index=index, size=size)
+    response_elastic = await client.search(index=index, size=size, body=body)
     response_elastic = response_elastic["hits"]["hits"]
     return [item["_source"] for item in response_elastic]
 
@@ -24,7 +25,7 @@ async def elastic_search_by_id(
     return response_elastic["_source"]
 
 
-async def redis_get(client: RedisConnection, key: str) -> Union[list[dict], dict]:
+async def redis_get(client: RedisConnection, key: str) -> Union[List[dict], dict]:
     """Запрос в редис на получение данных по ключу"""
 
     response = await client.execute("GET", key)
@@ -34,3 +35,9 @@ async def redis_get(client: RedisConnection, key: str) -> Union[list[dict], dict
         return [json.loads(i) for i in response]
     else:
         return response
+
+
+async def http_request(client: ClientSession, request: str, status_code: int) -> dict:
+    response_api = await client.get(request)
+    assert response_api.status == status_code
+    return await response_api.json()

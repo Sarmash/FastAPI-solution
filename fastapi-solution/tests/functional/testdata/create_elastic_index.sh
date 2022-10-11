@@ -204,4 +204,3 @@ curl -XPUT http://elasticsearch:9200/persons -H 'Content-Type: application/json'
     }
   }
 }'
-python3 /opt/app/testdata/filling_elastic_genre.py
