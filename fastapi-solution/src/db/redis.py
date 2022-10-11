@@ -1,12 +1,12 @@
 import json
 from functools import wraps
 from typing import Optional, Union
-from pydantic import BaseModel
+
 from aioredis import Redis
+from core.backoff import backoff
 from core.config import default_settings
 from core.logger import logger
-
-from core.backoff import backoff
+from pydantic import BaseModel
 
 redis: Optional[Redis] = None
 
@@ -16,7 +16,6 @@ async def get_redis() -> Redis:
 
 
 class Cache:
-
     @staticmethod
     def _deserializing_received_data(data: bytes) -> Union[list, dict]:
 
@@ -40,19 +39,21 @@ class Cache:
 
     def __call__(self, func):
         """Декоратор для кеширования в редис, ключ - URL запроса.
-            Для корректной работы декоратора в параметрах функции ендпоинта,
-            должен быть fastapi Request
-            def endpoint(some_parameters, request: Request)
-                some logic
-                return some_result
-            """
+        Для корректной работы декоратора в параметрах функции ендпоинта,
+        должен быть fastapi Request
+        def endpoint(some_parameters, request: Request)
+            some logic
+            return some_result
+        """
 
         @backoff()
         @wraps(func)
         async def inner(**kwargs):
             request = kwargs.get("request")
             if request is None:
-                logger.warn("Декоратор кеширования не работает, отсутствует переменная request")
+                logger.warn(
+                    "Декоратор кеширования не работает, отсутствует переменная request"
+                )
                 return await func(**kwargs)
 
             request = str(request.url)
