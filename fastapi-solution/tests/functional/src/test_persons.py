@@ -10,7 +10,10 @@ async def test_person(
         es_write_persons,
         es_write_data,
         session_client,
-        es_client
+        es_client,
+        redis_get_fixture,
+        redis_delete_fixture,
+        es_delete_data
 ):
     """
     Тест запроса существующей персоны
@@ -23,14 +26,13 @@ async def test_person(
     response_elastic = await elastic_search_by_id(
         es_client, test_settings.persons_index, "111"
     )
+    redis_response = await redis_get_fixture(url)
     assert response.status == 200
     assert len(body) == 1
-    assert body[0]["id"] == response_elastic["id"]
-    await es_client.delete_by_query(
-        conflicts="proceed",
-        index=test_settings.persons_index,
-        body={"query": {"match_all": {}}},
-    )
+    assert body[0]["id"] == response_elastic["id"] == redis_response[0]['id']
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
+    await redis_delete_fixture(url)
 
 
 @pytest.mark.parametrize(
@@ -42,7 +44,7 @@ async def test_person_not_found(
     session_client,
     es_write_data,
     es_write_persons,
-    es_client,
+    es_delete_data,
     query_data,
     expected_answer,
 ):
@@ -59,11 +61,8 @@ async def test_person_not_found(
     body = await response.json()
     assert response.status == expected_answer["status"]
     assert body["detail"] == expected_answer["message"]
-    await es_client.delete_by_query(
-        conflicts="proceed",
-        index=test_settings.persons_index,
-        body={"query": {"match_all": {}}},
-    )
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
 
 
 @pytest.mark.asyncio
@@ -71,7 +70,7 @@ async def test_pagination_200(
     session_client,
     es_write_data,
     es_write_persons,
-    es_client,
+    es_delete_data,
 ):
     """
     Тест корректной работы пагинцации, запрос существующей страницы
@@ -87,11 +86,8 @@ async def test_pagination_200(
     body = await response.json()
     assert len(body) == 1
 
-    await es_client.delete_by_query(
-        conflicts="proceed",
-        index=test_settings.persons_index,
-        body={"query": {"match_all": {}}},
-    )
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
 
 
 @pytest.mark.asyncio
@@ -99,7 +95,7 @@ async def test_pagination_404(
     session_client,
     es_write_data,
     es_write_persons,
-    es_client,
+    es_delete_data,
 ):
     """
     Тест пагинцации, запрос несуществующей страницы
@@ -114,11 +110,8 @@ async def test_pagination_404(
     response = await session_client.get(url)
     assert response.status == 404
 
-    await es_client.delete_by_query(
-        conflicts="proceed",
-        index=test_settings.persons_index,
-        body={"query": {"match_all": {}}},
-    )
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
 
 
 @pytest.mark.parametrize(
@@ -143,7 +136,7 @@ async def test_pagination_422(
     status_code,
     es_write_data,
     es_write_persons,
-    es_client,
+    es_delete_data,
 ):
     """
     Крайние случаи получения некорректного ввода пагинации
@@ -157,8 +150,5 @@ async def test_pagination_422(
     response_api = await session_client.get(params)
     assert response_api.status == status_code
 
-    await es_client.delete_by_query(
-        conflicts="proceed",
-        index=test_settings.persons_index,
-        body={"query": {"match_all": {}}},
-    )
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
