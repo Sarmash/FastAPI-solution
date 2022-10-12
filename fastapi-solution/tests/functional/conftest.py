@@ -68,6 +68,32 @@ def es_delete_data(es_client: AsyncElasticsearch):
 
 
 @pytest.fixture
+def es_write_persons(es_client):
+    async def gen_data_persons(es_data_persons: List[dict]):
+        bulk_query_perons = []
+        for row in es_data_persons:
+            bulk_query_perons.extend(
+                [
+                    json.dumps(
+                        {
+                            "index": {
+                                "_index": test_settings.persons_index,
+                                "_id": row[test_settings.persons_id_field],
+                            }
+                        }
+                    ),
+                    json.dumps(row),
+                ]
+            )
+        str_query = "\n".join(bulk_query_perons) + "\n"
+        response = await es_client.bulk(str_query, refresh=True)
+        if response["errors"]:
+            raise Exception("Ошибка записи данных в Elasticsearch")
+
+    return gen_data_persons
+
+
+@pytest.fixture
 def make_get_request(session_client: aiohttp.ClientSession):
     async def session(url: str, query_data: dict):
         response = await session_client.get(url, params=query_data)
