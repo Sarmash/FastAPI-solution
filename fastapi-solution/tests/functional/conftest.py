@@ -57,11 +57,11 @@ def es_write_data(es_client: AsyncElasticsearch):
 
 @pytest.fixture
 def es_delete_data(es_client: AsyncElasticsearch):
-    async def inner(index: str):
-        await es_client.delete_by_query(
-            conflicts="proceed", index=index, body={"query": {"match_all": {}}}
-        )
-
+    async def inner(indexes: tuple):
+        for index in indexes:
+            await es_client.delete_by_query(
+                conflicts="proceed", index=index, body={"query": {"match_all": {}}}
+            )
     return inner
 
 

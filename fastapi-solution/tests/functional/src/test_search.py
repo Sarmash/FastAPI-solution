@@ -55,8 +55,7 @@ async def test_films_search_200(
         == {i["id"] for i in response_elastic}
         == {i["id"] for i in response_redis}
     )
-    await es_delete_data(test_settings.movies_index)
-    await es_delete_data(test_settings.persons_index)
+    await es_delete_data((test_settings.movies_index, test_settings.persons_index))
 
 
 @pytest.mark.parametrize(
@@ -81,9 +80,7 @@ async def test_pagination_films_search_200(
     response_api = await http_request(session_client, request_url, status_code)
 
     assert len(response_api) == movies == size
-
-    await es_delete_data(test_settings.movies_index)
-    await es_delete_data(test_settings.persons_index)
+    await es_delete_data((test_settings.movies_index, test_settings.persons_index))
 
 
 @pytest.mark.parametrize(
@@ -110,9 +107,7 @@ async def test_films_search_404(
     response_api = await http_request(session_client, request_url, status_code)
 
     assert response_api["detail"] == FILM_NOT_FOUND
-
-    await es_delete_data(test_settings.movies_index)
-    await es_delete_data(test_settings.persons_index)
+    await es_delete_data((test_settings.movies_index, test_settings.persons_index))
 
 
 @pytest.mark.parametrize(
@@ -173,9 +168,7 @@ async def test_person_search_200(
             response_film_ids.add(j)
 
     assert response_film_ids == {film["id"] for film in response_elastic}
-
-    await es_delete_data(test_settings.movies_index)
-    await es_delete_data(test_settings.persons_index)
+    await es_delete_data((test_settings.movies_index, test_settings.persons_index))
 
 
 @pytest.mark.parametrize(
@@ -199,8 +192,7 @@ async def test_pagination_persons_search_200(
     response_api = await http_request(session_client, request_url, status_code)
     assert len(response_api) == films == size
 
-    await es_delete_data(test_settings.movies_index)
-    await es_delete_data(test_settings.persons_index)
+    await es_delete_data((test_settings.movies_index, test_settings.persons_index))
 
 
 @pytest.mark.parametrize(
@@ -225,7 +217,6 @@ async def test_person_search_404(
     )
 
     response_api = await http_request(session_client, request_url, status_code)
-
     assert response_api["detail"] == FILM_NOT_FOUND
-    await es_delete_data(test_settings.movies_index)
-    await es_delete_data(test_settings.persons_index)
+
+    await es_delete_data((test_settings.movies_index, test_settings.persons_index))

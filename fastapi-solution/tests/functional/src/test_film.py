@@ -50,7 +50,7 @@ async def test_films_list_200(
     ]
     pairs = zip(response_films, redis_films, elastic_films)
     result = True if all(x == y and x == z for x, y, z in pairs) else False
-    await es_delete_data(test_settings.movies_index)
+    await es_delete_data((test_settings.movies_index,))
     await redis_delete_fixture(url)
 
     assert response.status == expected_answer["status"]
@@ -106,7 +106,7 @@ async def test_films_list(
         if key not in ("writers_names", "actors_names"):
             elastic_films[key] = value
     redis_films = await redis_get_fixture(url_address)
-    await es_delete_data(test_settings.movies_index)
+    await es_delete_data((test_settings.movies_index,))
     await redis_delete_fixture(url_address)
 
     assert response.status == expected_answer["status"]
@@ -154,7 +154,7 @@ async def test_genre_list_422(
     Проверка запроса с некорректным идентификатором фильма."""
     await es_write_data(data, test_settings.movies_index)
     response_api = await make_get_request_url(url)
-    await es_delete_data(test_settings.movies_index)
+    await es_delete_data((test_settings.movies_index,))
     await redis_delete_fixture(url)
 
     assert response_api.status == code_result
