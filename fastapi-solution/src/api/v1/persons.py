@@ -32,7 +32,7 @@ async def person_list(
     "/search",
     summary="Производит поиск по персонам",
     description="Возвращает uuid, имя, роль и фильмы искомой персоны. "
-                "Принимает параметр query, по которому произваодится поиск"
+    "Принимает параметр query, по которому произваодится поиск",
 )
 @Cache()
 async def search_person(
@@ -56,7 +56,7 @@ async def search_person(
     "/{person_id}/",
     summary="Возвращает данные по конкретной персоне",
     description="Возвращает данные по конкретной персоне: его uuid, имя, роль"
-                "и фильмы, в которых он(а) принимал(а) участие",
+    "и фильмы, в которых он(а) принимал(а) участие",
 )
 @Cache()
 async def person_details(
@@ -69,5 +69,7 @@ async def person_details(
 
     person = await service.get_person_detail(person_id)
     if not person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.PERSON_NOT_FOUND)
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail=ex.PERSON_NOT_FOUND
+        )
     return person

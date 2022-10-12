@@ -2,9 +2,9 @@ from functools import lru_cache
 from typing import Optional
 
 from aioredis import Redis
-from db.elastic import get_elastic
+from db.elastic import ElasticDB, get_elastic
 from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch, NotFoundError, helpers
+from elasticsearch import AsyncElasticsearch, helpers
 from fastapi import Depends
 from models.filmwork import FilmWork, FilmWorkOut
 from models.genre import Genre
@@ -12,16 +12,11 @@ from services.service_base import Service
 
 
 class FilmService(Service):
-    INDEX = "movies"
-    INDEX_SIMILAR = "genre"
-
     async def get_by_id(self, film_id: str) -> Optional[FilmWork]:
         """Запрос в elasticsearch на получение данных о фильме по id"""
-        try:
-            doc = await self.elastic.get(self.INDEX, film_id)
-        except NotFoundError:
-            return None
-        return FilmWork(**doc["_source"])
+        return await ElasticDB(FilmWork, self.elastic, self.INDEX_MOVIES).get_by_id(
+            film_id
+        )
 
     async def get_info_films(
         self,
@@ -53,7 +48,7 @@ class FilmService(Service):
             }
 
         async for doc in helpers.async_scan(
-            client=self.elastic, query=body, index=self.INDEX
+            client=self.elastic, query=body, index=self.INDEX_MOVIES
         ):
             films_list.append(FilmWorkOut(**doc["_source"]))
 

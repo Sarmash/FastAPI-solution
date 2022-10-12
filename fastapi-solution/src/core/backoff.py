@@ -7,11 +7,13 @@ import elasticsearch
 from core.logger import logger
 
 
-def backoff(start_sleep_time: float = 0.1,
-            factor: int = 2,
-            border_sleep_time: int = 25,
-            connection_attempts: int = 20,
-            log: Logger = logger):
+def backoff(
+    start_sleep_time: float = 0.1,
+    factor: int = 2,
+    border_sleep_time: int = 25,
+    connection_attempts: int = 20,
+    log: Logger = logger,
+):
     """
     Функция для повторного выполнения функции через некоторое время, если возникла ошибка.
     Использует наивный экспоненциальный рост времени повтора
@@ -43,25 +45,28 @@ def backoff(start_sleep_time: float = 0.1,
                     return result
                 except elasticsearch.exceptions.ConnectionError:
                     log.warning(
-                        f'Elasticsearch соединение потеряно, следующая попытка соединения {connect_timer} sec '
-                        f'Осталось попыток {connection_attempts - try_}')
-                    connect_timer = connect_timer * 2 ** factor
+                        f"Elasticsearch соединение потеряно, следующая попытка соединения {connect_timer} sec "
+                        f"Осталось попыток {connection_attempts - try_}"
+                    )
+                    connect_timer = connect_timer * 2**factor
                     try_ += 1
                     if connect_timer > border_sleep_time:
                         connect_timer = start_sleep_time
                 except ConnectionRefusedError:
                     log.warning(
-                        f'redis соединение потеряно, следующая попытка соединения {connect_timer} sec '
-                        f'Осталось попыток {connection_attempts - try_}')
-                    connect_timer = connect_timer * 2 ** factor
+                        f"redis соединение потеряно, следующая попытка соединения {connect_timer} sec "
+                        f"Осталось попыток {connection_attempts - try_}"
+                    )
+                    connect_timer = connect_timer * 2**factor
                     try_ += 1
                     if connect_timer > border_sleep_time:
                         connect_timer = start_sleep_time
                 except socket.gaierror:
                     log.warning(
-                        f'redis соединение потеряно, следующая попытка соединения {connect_timer} sec '
-                        f'Осталось попыток {connection_attempts - try_}')
-                    connect_timer = connect_timer * 2 ** factor
+                        f"redis соединение потеряно, следующая попытка соединения {connect_timer} sec "
+                        f"Осталось попыток {connection_attempts - try_}"
+                    )
+                    connect_timer = connect_timer * 2**factor
                     try_ += 1
                     if connect_timer > border_sleep_time:
                         connect_timer = start_sleep_time

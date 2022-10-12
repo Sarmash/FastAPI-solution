@@ -13,7 +13,7 @@ class FilmWork(BasicModel):
     genre: list = []
     actors: list = []
     writers: list = []
-    directors: Optional[str]
+    director: Optional[str]
 
 
 class FilmWorkOut(BasicModel):

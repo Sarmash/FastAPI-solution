@@ -17,9 +17,6 @@ from services.service_base import Service
 class PersonService(Service):
     """Сервис для обработки запросов по роутеру persons в elasticsearch"""
 
-    INDEX_PERSON = "persons"
-    INDEX_MOVIES = "movies"
-
     async def get_person_detail(self, person_id: str) -> Optional[List]:
         """Получение списка всех кинопроизведений по ролям
         в которых участвовал человек по id"""
@@ -57,7 +54,7 @@ class PersonService(Service):
         from_ = 0 if page_number == 1 else page_number * page_size - page_size
 
         raw_persons = await self.elastic.search(
-            size=page_size, from_=from_, index=self.INDEX_PERSON, body=body
+            size=page_size, from_=from_, index=self.INDEX_PERSONS, body=body
         )
 
         person_films_out = []
@@ -84,7 +81,7 @@ class PersonService(Service):
         """Поиск кинопроизведений по ид с сортировкой по ролям"""
 
         try:
-            person = await self.elastic.get(self.INDEX_PERSON, id_)
+            person = await self.elastic.get(self.INDEX_PERSONS, id_)
         except elasticsearch.exceptions.NotFoundError:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND, detail=ex.PERSON_NOT_FOUND
