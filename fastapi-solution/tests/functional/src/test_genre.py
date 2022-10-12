@@ -2,7 +2,12 @@ import pytest
 
 from ..settings import test_settings
 from ..testdata.data import GENRES
-from ..utils.helpers import elastic_search_by_id, elastic_search_list, redis_get
+from ..utils.helpers import (
+    elastic_search_by_id,
+    elastic_search_list,
+    redis_get,
+    http_request,
+)
 
 
 @pytest.mark.asyncio
@@ -12,12 +17,11 @@ async def test_genre_list_200(
     """Проверка работоспособности ендпоинта localhost/api/v1/genres
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
     await es_write_data(GENRES, test_settings.genres_index)
-    response_api = await session_client.get(
-        f"{test_settings.service_url}{test_settings.genres_endpoint}"
+    response_api = await http_request(
+        session_client,
+        f"{test_settings.service_url}{test_settings.genres_endpoint}",
+        200,
     )
-    assert response_api.status == 200
-    response_api = await response_api.json()
-
     response_elastic = await elastic_search_list(
         client=es_client, index=test_settings.genres_index
     )
@@ -96,11 +100,11 @@ async def test_genre_by_id_200(
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
     await es_write_data(GENRES, test_settings.genres_index)
 
-    response_api = await session_client.get(
-        f"{test_settings.service_url}{test_settings.genres_endpoint}{genre_id}"
+    response_api = await http_request(
+        session_client,
+        f"{test_settings.service_url}" f"{test_settings.genres_endpoint}" f"{genre_id}",
+        status_code,
     )
-    assert response_api.status == status_code
-    response_api = await response_api.json()
 
     response_elastic = await elastic_search_by_id(
         es_client, test_settings.genres_index, genre_id

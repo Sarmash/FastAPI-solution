@@ -33,6 +33,8 @@ services:
       - elasticsearch
     depends_on:
       - fastapi
+    env_file:
+      - .dev.env
     entrypoint: >
       sh -c "python3 utils/wait_for_es.py
       && python3 utils/wait_for_redis.py
