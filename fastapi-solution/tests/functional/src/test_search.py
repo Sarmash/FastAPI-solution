@@ -1,5 +1,6 @@
 import pytest
 from ..testdata.http_exeptions import FILM_NOT_FOUND
+from ..testdata.data import MOVIES, PERSONS
 from ..settings import test_settings
 from ..utils.helpers import redis_get, elastic_search_list, http_request
 
@@ -9,7 +10,7 @@ from ..utils.helpers import redis_get, elastic_search_list, http_request
 )
 @pytest.mark.asyncio
 async def test_films_search_200(
-    session_client, es_client, redis_client, query, status_code
+    session_client, es_client, redis_client, query, status_code, es_delete_data, es_write_data
 ):
     """
     Проверка поиска фильмов по актеру, сценаристу, части описания и части названия.
@@ -21,6 +22,8 @@ async def test_films_search_200(
     Часть описания = 'who'
     Часть заголовка = star
     """
+    await es_write_data(MOVIES, test_settings.movies_index)
+    await es_write_data(PERSONS, test_settings.persons_index)
     request_url = (
         f"{test_settings.service_url}"
         f"{test_settings.search_films_endpoint}"
@@ -46,6 +49,8 @@ async def test_films_search_200(
         == {i["id"] for i in response_elastic}
         == {i["id"] for i in response_redis}
     )
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
 
 
 @pytest.mark.parametrize(
@@ -54,9 +59,12 @@ async def test_films_search_200(
 )
 @pytest.mark.asyncio
 async def test_pagination_films_search_200(
-    session_client, query, size, status_code, movies
+    session_client, query, size, status_code, movies, es_delete_data, es_write_data
 ):
     """Проверка вывода N-го числа данных с помощью пагинации"""
+
+    await es_write_data(MOVIES, test_settings.movies_index)
+    await es_write_data(PERSONS, test_settings.persons_index)
 
     request_url = (
         f"{test_settings.service_url}"
@@ -68,6 +76,9 @@ async def test_pagination_films_search_200(
 
     assert len(response_api) == movies == size
 
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
+
 
 @pytest.mark.parametrize(
     "query, status_code",
@@ -77,8 +88,10 @@ async def test_pagination_films_search_200(
     ],
 )
 @pytest.mark.asyncio
-async def test_films_search_404(session_client, query, status_code):
+async def test_films_search_404(session_client, query, status_code, es_delete_data, es_write_data):
     """Проверка крайних случаев ошибки в запросе"""
+    await es_write_data(MOVIES, test_settings.movies_index)
+    await es_write_data(PERSONS, test_settings.persons_index)
 
     request_url = (
         f"{test_settings.service_url}"
@@ -90,6 +103,9 @@ async def test_films_search_404(session_client, query, status_code):
 
     assert response_api["detail"] == FILM_NOT_FOUND
 
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
+
 
 @pytest.mark.parametrize(
     "query, status_code",
@@ -97,10 +113,11 @@ async def test_films_search_404(session_client, query, status_code):
 )
 @pytest.mark.asyncio
 async def test_person_search_200(
-    session_client, es_client, redis_client, query, status_code
+    session_client, es_client, redis_client, query, status_code, es_delete_data, es_write_data
 ):
     """Проверка совпадения данных выводимых при запросе данных для искомой персоны"""
-
+    await es_write_data(MOVIES, test_settings.movies_index)
+    await es_write_data(PERSONS, test_settings.persons_index)
     request_url = (
         f"{test_settings.service_url}"
         f"{test_settings.search_persons_endpoint}"
@@ -143,6 +160,9 @@ async def test_person_search_200(
 
     assert response_film_ids == {film["id"] for film in response_elastic}
 
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
+
 
 @pytest.mark.parametrize(
     "query, status_code, films, size",
@@ -151,8 +171,10 @@ async def test_person_search_200(
 @pytest.mark.asyncio
 async def test_pagination_persons_search_200(
     session_client, query, size, status_code, films
-):
+, es_write_data, es_delete_data):
     """Проверка вывода N-го числа данных с помощью пагинации"""
+    await es_write_data(MOVIES, test_settings.movies_index)
+    await es_write_data(PERSONS, test_settings.persons_index)
 
     request_url = (
         f"{test_settings.service_url}"
@@ -163,6 +185,9 @@ async def test_pagination_persons_search_200(
     response_api = await http_request(session_client, request_url, status_code)
     assert len(response_api) == films == size
 
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)
+
 
 @pytest.mark.parametrize(
     "query, status_code",
@@ -172,8 +197,10 @@ async def test_pagination_persons_search_200(
     ],
 )
 @pytest.mark.asyncio
-async def test_person_search_404(session_client, query, status_code, es_delete_data):
+async def test_person_search_404(session_client, query, status_code, es_delete_data, es_write_data):
     """Проверка крайних случаев ошибки в запросе"""
+    await es_write_data(MOVIES, test_settings.movies_index)
+    await es_write_data(PERSONS, test_settings.persons_index)
 
     request_url = (
         f"{test_settings.service_url}"
@@ -184,4 +211,5 @@ async def test_person_search_404(session_client, query, status_code, es_delete_d
     response_api = await http_request(session_client, request_url, status_code)
 
     assert response_api["detail"] == FILM_NOT_FOUND
-    await es_delete_data(index=test_settings.movies_index)
+    await es_delete_data(test_settings.movies_index)
+    await es_delete_data(test_settings.persons_index)

@@ -3,7 +3,7 @@ from operator import itemgetter
 import pytest
 
 from ..settings import test_settings
-from .data import data_film_id, es_data_films
+from ..testdata.data import MOVIES
 
 
 @pytest.mark.parametrize(
@@ -11,12 +11,12 @@ from .data import data_film_id, es_data_films
     [
         (
             {"status": 200},
-            es_data_films,
+            MOVIES,
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
         ),
         (
             {"status": 200},
-            data_film_id,
+            MOVIES,
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
         ),
     ],
@@ -35,7 +35,7 @@ async def test_films_list_200(
 ):
     """Проверка работоспособности эндпоинтов localhost/api/v1/films
     на совпадение данных возвращаемых клиенту и данных из редиса и эластика"""
-    await es_write_data(data)
+    await es_write_data(data, test_settings.movies_index)
     response = await make_get_request_url(url)
     response_films = await response.json()
     elastic = await elastic_search_list_fixture(test_settings.movies_index)
@@ -63,19 +63,19 @@ async def test_films_list_200(
     [
         (
             {"status": 200},
-            data_film_id,
+            MOVIES,
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
             "c0142274-dc57-4a3a-a8fe-4c0a229c60f8",
         ),
         (
             {"status": 200},
-            data_film_id,
+            MOVIES,
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
             "c5dc6c27-1c24-4965-8acc-ae7dcd20801c",
         ),
         (
             {"status": 200},
-            data_film_id,
+            MOVIES,
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
             "c0142274-dc57-4a3a-a8fe-4c0a229c60f1",
         ),
@@ -96,7 +96,7 @@ async def test_films_list(
 ):
     """Проверка работоспособности эндпоинтов localhost/api/v1/films/{films_id}
     на совпадение данных возвращаемых клиенту и данных из редиса и эластика"""
-    await es_write_data(data)
+    await es_write_data(data, test_settings.movies_index)
     url_address = f"{url}{url_id}"
     response = await make_get_request_url(url_address)
     response_films = await response.json()
@@ -120,22 +120,22 @@ async def test_films_list(
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}?page[number]=0&page[size]=5",
             422,
-            es_data_films,
+            MOVIES,
         ),
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}?page[number]=-5&page[size]=5",
             422,
-            data_film_id,
+            MOVIES,
         ),
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}?page[number]=10&page[size]=10",
             404,
-            es_data_films,
+            MOVIES,
         ),
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}/c0142274-dc57-4a3a-a8fe-4c0a229c6005",
             404,
-            data_film_id,
+            MOVIES,
         ),
     ],
 )
@@ -152,7 +152,7 @@ async def test_genre_list_422(
     """Крайние случаи получения некорректного ввода пагинации.
     Запрос несуществующей страницы пагинации.
     Проверка запроса с некорректным идентификатором фильма."""
-    await es_write_data(data)
+    await es_write_data(data, test_settings.movies_index)
     response_api = await make_get_request_url(url)
     await es_delete_data(test_settings.movies_index)
     await redis_delete_fixture(url)

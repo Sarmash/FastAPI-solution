@@ -1,15 +1,15 @@
 import pytest
 
 from ..settings import test_settings
-from ..testdata.filling_elastic import GENRES, filling_indexes
+from ..testdata.data import GENRES
 from ..utils.helpers import elastic_search_by_id, elastic_search_list, redis_get
 
 
 @pytest.mark.asyncio
-async def test_genre_list_200(session_client, es_client, redis_client):
+async def test_genre_list_200(session_client, es_client, redis_client, es_write_data, es_delete_data):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
-    filling_indexes()
+    await es_write_data(GENRES, test_settings.genres_index)
     response_api = await session_client.get(
         f"{test_settings.service_url}{test_settings.genres_endpoint}"
     )
@@ -23,7 +23,7 @@ async def test_genre_list_200(session_client, es_client, redis_client):
     response_redis = await redis_get(
         redis_client, f"{test_settings.service_url}{test_settings.genres_endpoint}"
     )
-
+    await es_delete_data(test_settings.genres_index)
     assert len(response_api) == len(response_elastic) == len(response_redis)
 
     assert (
@@ -63,15 +63,17 @@ async def test_genre_list_422(session_client, response, code_result):
 
 
 @pytest.mark.asyncio
-async def test_genre_list_404(session_client):
+async def test_genre_list_404(session_client, es_write_data, es_delete_data):
     """Запрос несуществующей страницы пагинации"""
 
+    await es_write_data(GENRES, test_settings.genres_index)
     response_api = await session_client.get(
         f"{test_settings.service_url}"
         f"{test_settings.genres_endpoint}"
         f"?page[number]=10&page[size]=10"
     )
     assert response_api.status == 404
+    await es_delete_data(test_settings.genres_index)
 
 
 @pytest.mark.parametrize(
@@ -80,10 +82,11 @@ async def test_genre_list_404(session_client):
 )
 @pytest.mark.asyncio
 async def test_genre_by_id_200(
-    session_client, es_client, redis_client, genre_id, status_code
+    session_client, es_client, redis_client, genre_id, status_code, es_write_data, es_delete_data
 ):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres/{id_genre}
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
+    await es_write_data(GENRES, test_settings.genres_index)
 
     response_api = await session_client.get(
         f"{test_settings.service_url}{test_settings.genres_endpoint}{genre_id}"
@@ -94,7 +97,7 @@ async def test_genre_by_id_200(
     response_elastic = await elastic_search_by_id(
         es_client, test_settings.genres_index, genre_id
     )
-
+    await es_delete_data(test_settings.genres_index)
     response_redis = await redis_get(
         redis_client,
         f"{test_settings.service_url}" f"{test_settings.genres_endpoint}" f"{genre_id}",
