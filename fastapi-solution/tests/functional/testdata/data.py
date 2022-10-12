@@ -34,7 +34,7 @@ MOVIES = [
         ],
         "actors_names": ["Suzy Stokey", "Marya Gant", "Sandy Brooke", "Ross Hagen"],
         "description": "Two women who have been unjustly confined to a prison planet plot their escape, "
-                       "all the while having to put up with lesbian guards, crazed wardens and mutant rodents.",
+        "all the while having to put up with lesbian guards, crazed wardens and mutant rodents.",
         "director": "Fred Olen Ray",
         "genre": ["Sci-Fi", "Action", "Comedy"],
         "id": "00af52ec-9345-4d66-adbe-50eb917f463a",
@@ -61,7 +61,7 @@ MOVIES = [
         ],
         "actors_names": ["Suzy Stokey", "Erik Bauersfeld", "Clive Revill"],
         "description": "Be a Rebel pilot during the Galactic Civil War. "
-                       "Fly the most famous Star Wars starfighters in furious battles against Imperial pilots.",
+        "Fly the most famous Star Wars starfighters in furious battles against Imperial pilots.",
         "director": "",
         "genre": ["Action", "Sci-Fi"],
         "id": "00e2e781-7af9-4f82-b4e9-14a488a3e184",
@@ -124,14 +124,14 @@ MOVIES = [
             "Alexandra Paul",
         ],
         "description": "Thatcher Horton is owner of a Denver sports arena and a couple of sports teams. "
-                       "Bobby Spencer a friend of Ken was one of his hockey players."
-                       " It seems that Horton verbally promised him that he would take care of him "
-                       "if he gets injured, which happened. Now it seems that Horton is reneging and he "
-                       "has asked Ken to represent him in his suit against Horton. Bobby threatened Horton "
-                       "and not long after that Horton was killed and the murder weapon was found in Bobby's"
-                       " possession. So Perry comes to help defend Bobby. It seems that Horton was not liked by "
-                       "other people including his wife and son, and it also seems that the killer was"
-                       " a professional assassin, so did one of them hire him?",
+        "Bobby Spencer a friend of Ken was one of his hockey players."
+        " It seems that Horton verbally promised him that he would take care of him "
+        "if he gets injured, which happened. Now it seems that Horton is reneging and he "
+        "has asked Ken to represent him in his suit against Horton. Bobby threatened Horton "
+        "and not long after that Horton was killed and the murder weapon was found in Bobby's"
+        " possession. So Perry comes to help defend Bobby. It seems that Horton was not liked by "
+        "other people including his wife and son, and it also seems that the killer was"
+        " a professional assassin, so did one of them hire him?",
         "director": "Christian I. Nyby II",
         "genre": ["Crime", "Mystery", "Drama"],
         "id": "01cd80e2-5db8-4914-9a80-74f15a3a1a24",
@@ -228,13 +228,13 @@ MOVIES = [
             "Nicole Sullivan",
         ],
         "description": "After a successful mission in which his partner, Warp Darkmatter, "
-                       "fell in battle, Buzz Lightyear vows never to put another partner at "
-                       "risk and works solo. This vow, however is challenged by Star Command who assigns "
-                       "young Mira Nova to be Warp's replacement over Buzz's objections. In addition, the LGMs "
-                       "suggest he tries a new robot for an assistant while a lowly janitor, Booster, has his"
-                       " dreams of joining the Space Rangers. Together, this group of disparate heroes find they"
-                       " must work together to save the galaxy when Emporer Zurg hatches his "
-                       "grandest scheme for conquest yet.",
+        "fell in battle, Buzz Lightyear vows never to put another partner at "
+        "risk and works solo. This vow, however is challenged by Star Command who assigns "
+        "young Mira Nova to be Warp's replacement over Buzz's objections. In addition, the LGMs "
+        "suggest he tries a new robot for an assistant while a lowly janitor, Booster, has his"
+        " dreams of joining the Space Rangers. Together, this group of disparate heroes find they"
+        " must work together to save the galaxy when Emporer Zurg hatches his "
+        "grandest scheme for conquest yet.",
         "director": "George Lucas",
         "genre": ["Adventure", "Sci-Fi", "Animation", "Comedy", "Family", "Action"],
         "id": "0236282f-8ea5-418e-ab9b-13662a4688a9",
@@ -273,10 +273,10 @@ MOVIES = [
             "Carrie Fisher",
         ],
         "description": "Luke Skywalker battles horrible Jabba the Hut and cruel"
-                       " Darth Vader to save his comrades in the Rebel Alliance and triumph over "
-                       "the Galactic Empire. Han Solo and Princess Leia reaffirm their love and team"
-                       " with Chewbacca, Lando Calrissian, the Ewoks and the androids C-3PO and R2-D2 "
-                       "to aid in the disruption of the Dark Side and the defeat of the evil emperor.",
+        " Darth Vader to save his comrades in the Rebel Alliance and triumph over "
+        "the Galactic Empire. Han Solo and Princess Leia reaffirm their love and team"
+        " with Chewbacca, Lando Calrissian, the Ewoks and the androids C-3PO and R2-D2 "
+        "to aid in the disruption of the Dark Side and the defeat of the evil emperor.",
         "director": "George Lucas",
         "genre": ["Adventure", "Sci-Fi", "Fantasy", "Action"],
         "id": "025c58cd-1b7e-43be-9ffb-8571a613579b",
@@ -313,9 +313,7 @@ MOVIES = [
         "id": "027ba6c5-d805-402a-addf-484b34292625",
         "imdb_rating": 3.1,
         "title": "Chasing the Star",
-        "writers": [
-            {"id": "606c74bd-ab92-4748-a5da-759f9cba91f8", "name": "DJ Perry"}
-        ],
+        "writers": [{"id": "606c74bd-ab92-4748-a5da-759f9cba91f8", "name": "DJ Perry"}],
         "writers_names": ["DJ Perry"],
     },
     {
@@ -335,12 +333,12 @@ MOVIES = [
             "John Agar",
         ],
         "description": "The sheriff of Gunlock is planning to hang Sam Hall,"
-                       " who shot three farmers found on cattle land, at sundown."
-                       " At the casino, betting is 8 to 3 he won't make it. The cattlemen are"
-                       " set to rescue Sam; the farmers hope to lynch him before he can be rescued;"
-                       " and Hall schemes for escape with his girl Nellie. But Sheriff Jorden is most "
-                       "concerned with finding out who hired Hall: a leading suspect is the sheriff's "
-                       "future brother-in-law.",
+        " who shot three farmers found on cattle land, at sundown."
+        " At the casino, betting is 8 to 3 he won't make it. The cattlemen are"
+        " set to rescue Sam; the farmers hope to lynch him before he can be rescued;"
+        " and Hall schemes for escape with his girl Nellie. But Sheriff Jorden is most "
+        "concerned with finding out who hired Hall: a leading suspect is the sheriff's "
+        "future brother-in-law.",
         "director": "Charles F. Haas",
         "genre": ["Romance", "Drama", "Western"],
         "id": "02c24a84-1667-4f98-b459-f08933befa3d",

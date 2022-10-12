@@ -46,9 +46,7 @@ async def session_client():
 @pytest.fixture
 def es_write_data(es_client: AsyncElasticsearch):
     async def inner(data: List[dict], index: str):
-        bulk_query = get_es_bulk_query(
-            data, index, test_settings.movies_id_field
-        )
+        bulk_query = get_es_bulk_query(data, index, test_settings.movies_id_field)
         str_query = "\n".join(bulk_query) + "\n"
         response = await es_client.bulk(str_query, refresh=True)
         if response["errors"]:

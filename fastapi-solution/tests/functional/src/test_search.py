@@ -10,7 +10,13 @@ from ..utils.helpers import redis_get, elastic_search_list, http_request
 )
 @pytest.mark.asyncio
 async def test_films_search_200(
-    session_client, es_client, redis_client, query, status_code, es_delete_data, es_write_data
+    session_client,
+    es_client,
+    redis_client,
+    query,
+    status_code,
+    es_delete_data,
+    es_write_data,
 ):
     """
     Проверка поиска фильмов по актеру, сценаристу, части описания и части названия.
@@ -88,7 +94,9 @@ async def test_pagination_films_search_200(
     ],
 )
 @pytest.mark.asyncio
-async def test_films_search_404(session_client, query, status_code, es_delete_data, es_write_data):
+async def test_films_search_404(
+    session_client, query, status_code, es_delete_data, es_write_data
+):
     """Проверка крайних случаев ошибки в запросе"""
     await es_write_data(MOVIES, test_settings.movies_index)
     await es_write_data(PERSONS, test_settings.persons_index)
@@ -113,7 +121,13 @@ async def test_films_search_404(session_client, query, status_code, es_delete_da
 )
 @pytest.mark.asyncio
 async def test_person_search_200(
-    session_client, es_client, redis_client, query, status_code, es_delete_data, es_write_data
+    session_client,
+    es_client,
+    redis_client,
+    query,
+    status_code,
+    es_delete_data,
+    es_write_data,
 ):
     """Проверка совпадения данных выводимых при запросе данных для искомой персоны"""
     await es_write_data(MOVIES, test_settings.movies_index)
@@ -170,8 +184,8 @@ async def test_person_search_200(
 )
 @pytest.mark.asyncio
 async def test_pagination_persons_search_200(
-    session_client, query, size, status_code, films
-, es_write_data, es_delete_data):
+    session_client, query, size, status_code, films, es_write_data, es_delete_data
+):
     """Проверка вывода N-го числа данных с помощью пагинации"""
     await es_write_data(MOVIES, test_settings.movies_index)
     await es_write_data(PERSONS, test_settings.persons_index)
@@ -197,7 +211,9 @@ async def test_pagination_persons_search_200(
     ],
 )
 @pytest.mark.asyncio
-async def test_person_search_404(session_client, query, status_code, es_delete_data, es_write_data):
+async def test_person_search_404(
+    session_client, query, status_code, es_delete_data, es_write_data
+):
     """Проверка крайних случаев ошибки в запросе"""
     await es_write_data(MOVIES, test_settings.movies_index)
     await es_write_data(PERSONS, test_settings.persons_index)

@@ -6,7 +6,9 @@ from ..utils.helpers import elastic_search_by_id, elastic_search_list, redis_get
 
 
 @pytest.mark.asyncio
-async def test_genre_list_200(session_client, es_client, redis_client, es_write_data, es_delete_data):
+async def test_genre_list_200(
+    session_client, es_client, redis_client, es_write_data, es_delete_data
+):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
     await es_write_data(GENRES, test_settings.genres_index)
@@ -82,7 +84,13 @@ async def test_genre_list_404(session_client, es_write_data, es_delete_data):
 )
 @pytest.mark.asyncio
 async def test_genre_by_id_200(
-    session_client, es_client, redis_client, genre_id, status_code, es_write_data, es_delete_data
+    session_client,
+    es_client,
+    redis_client,
+    genre_id,
+    status_code,
+    es_write_data,
+    es_delete_data,
 ):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres/{id_genre}
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
