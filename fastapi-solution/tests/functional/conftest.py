@@ -21,6 +21,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session")
 async def redis_client():
+    """Создание подключения к редис"""
     client = await create_connection(
         (test_settings.redis_host, test_settings.redis_port)
     )
@@ -30,6 +31,7 @@ async def redis_client():
 
 @pytest_asyncio.fixture(scope="session")
 async def es_client():
+    """Создание подключения к elasticsearch"""
     client = AsyncElasticsearch(hosts=test_settings.es_host)
     yield client
     await client.close()
@@ -37,6 +39,7 @@ async def es_client():
 
 @pytest_asyncio.fixture(scope="session")
 async def session_client():
+    """Создание http сессии"""
     session = aiohttp.ClientSession()
     yield session
     await session.close()
@@ -44,6 +47,7 @@ async def session_client():
 
 @pytest_asyncio.fixture(scope="function")
 async def es_write_genre(es_client: AsyncElasticsearch):
+    """Фикстура для записи и удаления данных из индекса жанров в elasticsearch"""
     await elastic_filling_index(es_client, test_settings.genres_index, GENRES)
     yield
     await elastic_delete_data(es_client, test_settings.genres_index)
@@ -51,6 +55,7 @@ async def es_write_genre(es_client: AsyncElasticsearch):
 
 @pytest_asyncio.fixture(scope="function")
 async def es_write_movies(es_client: AsyncElasticsearch):
+    """Фикстура для записи и удаления данных из индекса кинопроизведений в elasticsearch"""
     await elastic_filling_index(es_client, test_settings.movies_index, MOVIES)
     yield
     await elastic_delete_data(es_client, test_settings.movies_index)
@@ -58,6 +63,7 @@ async def es_write_movies(es_client: AsyncElasticsearch):
 
 @pytest_asyncio.fixture(scope="function")
 async def es_write_persons(es_client: AsyncElasticsearch):
+    """Фикстура для записи и удаления данных из индекса персон в elasticsearch"""
     await elastic_filling_index(es_client, test_settings.persons_index, PERSONS)
     yield
     await elastic_delete_data(es_client, test_settings.persons_index)
@@ -65,6 +71,8 @@ async def es_write_persons(es_client: AsyncElasticsearch):
 
 @pytest.fixture
 def redis_delete_fixture(redis_client: RedisConnection):
+    """Фикстура для очистки данных в редис по ключу"""
+
     async def inner(key: str):
         await redis_client.execute("DEL", key)
 

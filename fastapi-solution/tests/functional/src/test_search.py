@@ -14,6 +14,7 @@ async def test_films_search_200(
     redis_client,
     query,
     status_code,
+    redis_delete_fixture,
     es_write_persons,
     es_write_movies,
 ):
@@ -52,6 +53,7 @@ async def test_films_search_200(
         == {i["id"] for i in response_elastic}
         == {i["id"] for i in response_redis}
     )
+    await redis_delete_fixture(request_url)
 
 
 @pytest.mark.parametrize(
@@ -60,7 +62,14 @@ async def test_films_search_200(
 )
 @pytest.mark.asyncio
 async def test_pagination_films_search_200(
-    session_client, query, size, status_code, movies, es_write_persons, es_write_movies
+    session_client,
+    query,
+    size,
+    status_code,
+    movies,
+    redis_delete_fixture,
+    es_write_persons,
+    es_write_movies,
 ):
     """Проверка вывода N-го числа данных с помощью пагинации"""
 
@@ -73,6 +82,7 @@ async def test_pagination_films_search_200(
     response_api = await http_request(session_client, request_url, status_code)
 
     assert len(response_api) == movies == size
+    await redis_delete_fixture(request_url)
 
 
 @pytest.mark.parametrize(
@@ -112,6 +122,7 @@ async def test_person_search_200(
     status_code,
     es_write_persons,
     es_write_movies,
+    redis_delete_fixture,
 ):
     """Проверка совпадения данных выводимых при запросе данных для искомой персоны"""
     request_url = (
@@ -155,6 +166,7 @@ async def test_person_search_200(
             response_film_ids.add(j)
 
     assert response_film_ids == {film["id"] for film in response_elastic}
+    await redis_delete_fixture(request_url)
 
 
 @pytest.mark.parametrize(
@@ -163,7 +175,14 @@ async def test_person_search_200(
 )
 @pytest.mark.asyncio
 async def test_pagination_persons_search_200(
-    session_client, query, size, status_code, films, es_write_persons, es_write_movies
+    session_client,
+    query,
+    size,
+    status_code,
+    films,
+    redis_delete_fixture,
+    es_write_persons,
+    es_write_movies,
 ):
     """Проверка вывода N-го числа данных с помощью пагинации"""
 
@@ -175,6 +194,7 @@ async def test_pagination_persons_search_200(
 
     response_api = await http_request(session_client, request_url, status_code)
     assert len(response_api) == films == size
+    await redis_delete_fixture(request_url)
 
 
 @pytest.mark.parametrize(

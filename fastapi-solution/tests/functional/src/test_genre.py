@@ -11,12 +11,15 @@ from ..utils.helpers import (
 
 
 @pytest.mark.asyncio
-async def test_genre_list_200(session_client, es_client, redis_client, es_write_genre):
+async def test_genre_list_200(
+    session_client, es_client, redis_client, redis_delete_fixture, es_write_genre
+):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
+    request_url = f"{test_settings.service_url}{test_settings.genres_endpoint}"
     response_api = await http_request(
         session_client,
-        f"{test_settings.service_url}{test_settings.genres_endpoint}",
+        request_url,
         200,
     )
     response_elastic = await elastic_search_list(
@@ -38,9 +41,7 @@ async def test_genre_list_200(session_client, es_client, redis_client, es_write_
         == {i["genre"] for i in response_elastic}
         == {i["genre"] for i in response_redis}
     )
-    await redis_client.execute(
-        "DEL", f"{test_settings.service_url}{test_settings.genres_endpoint}"
-    )
+    await redis_delete_fixture(request_url)
 
 
 @pytest.mark.parametrize(
@@ -77,14 +78,22 @@ async def test_genre_list_422(session_client, response, code_result):
 )
 @pytest.mark.asyncio
 async def test_genre_by_id_200(
-    session_client, es_client, redis_client, genre_id, status_code, es_write_genre
+    session_client,
+    es_client,
+    redis_client,
+    genre_id,
+    status_code,
+    redis_delete_fixture,
+    es_write_genre,
 ):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres/{id_genre}
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
-
+    request_url = (
+        f"{test_settings.service_url}" f"{test_settings.genres_endpoint}" f"{genre_id}"
+    )
     response_api = await http_request(
         session_client,
-        f"{test_settings.service_url}" f"{test_settings.genres_endpoint}" f"{genre_id}",
+        request_url,
         status_code,
     )
 
@@ -97,6 +106,7 @@ async def test_genre_by_id_200(
     )
 
     assert response_api["id"] == response_elastic["id"] == response_redis["id"]
+    await redis_delete_fixture(request_url)
 
 
 @pytest.mark.asyncio
