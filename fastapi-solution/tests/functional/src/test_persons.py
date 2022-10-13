@@ -36,8 +36,6 @@ async def test_person(
 )
 @pytest.mark.asyncio
 async def test_person_not_found(
-    es_write_persons,
-    es_write_movies,
     session_client,
     query_data,
     expected_answer,
@@ -117,9 +115,7 @@ async def test_pagination_404(session_client):
 async def test_pagination_422(
     session_client,
     params,
-    status_code,
-    es_write_movies,
-    es_write_persons,
+    status_code
 ):
     """
     Крайние случаи получения некорректного ввода пагинации

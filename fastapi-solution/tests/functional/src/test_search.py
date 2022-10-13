@@ -94,7 +94,7 @@ async def test_pagination_films_search_200(
 )
 @pytest.mark.asyncio
 async def test_films_search_404(
-    session_client, query, status_code, es_write_persons, es_write_movies
+    session_client, query, status_code
 ):
     """Проверка крайних случаев ошибки в запросе"""
 
@@ -206,7 +206,7 @@ async def test_pagination_persons_search_200(
 )
 @pytest.mark.asyncio
 async def test_person_search_404(
-    session_client, query, status_code, es_write_persons, es_write_movies
+    session_client, query, status_code
 ):
     """Проверка крайних случаев ошибки в запросе"""
 
