@@ -78,17 +78,6 @@ async def es_write_persons(es_client: AsyncElasticsearch):
 
 
 @pytest.fixture
-def es_delete_data(es_client: AsyncElasticsearch):
-    async def inner(indexes: tuple):
-        for index in indexes:
-            await es_client.delete_by_query(
-                conflicts="proceed", index=index, body={"query": {"match_all": {}}}
-            )
-
-    return inner
-
-
-@pytest.fixture
 def make_get_request(session_client: aiohttp.ClientSession):
     async def session(url: str, query_data: dict):
         response = await session_client.get(url, params=query_data)
