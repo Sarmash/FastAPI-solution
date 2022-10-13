@@ -3,7 +3,12 @@ from operator import itemgetter
 import pytest
 
 from ..settings import test_settings
-from ..utils.helpers import http_request
+from ..utils.helpers import (
+    http_request,
+    elastic_search_list,
+    elastic_search_by_id,
+    redis_get,
+)
 
 
 @pytest.mark.parametrize(
@@ -23,21 +28,21 @@ from ..utils.helpers import http_request
 async def test_films_list_200(
     es_write_movies,
     session_client,
-    elastic_search_list_fixture,
-    redis_get_fixture,
+    es_client,
+    redis_client,
     redis_delete_fixture,
     expected_answer: dict,
     url: str,
 ):
     """Проверка работоспособности эндпоинтов localhost/api/v1/films
     на совпадение данных возвращаемых клиенту и данных из редиса и эластика"""
-    response_films = await http_request(session_client, url, expected_answer['status'])
-    elastic = await elastic_search_list_fixture(test_settings.movies_index)
+    response_films = await http_request(session_client, url, expected_answer["status"])
+    elastic = await elastic_search_list(es_client, test_settings.movies_index)
     elastic_films = [
         {"id": i["id"], "title": i["title"], "imdb_rating": i["imdb_rating"]}
         for i in elastic
     ]
-    redis_films = await redis_get_fixture(url)
+    redis_films = await redis_get(redis_client, url)
     response_films, redis_films, elastic_films = [
         sorted(_, key=itemgetter("id"))
         for _ in (response_films, redis_films, elastic_films)
@@ -74,8 +79,8 @@ async def test_films_list_200(
 async def test_films_list(
     es_write_movies,
     session_client,
-    elastic_search_list_fixture,
-    redis_get_fixture,
+    es_client,
+    redis_client,
     redis_delete_fixture,
     expected_answer: dict,
     url: str,
@@ -84,13 +89,17 @@ async def test_films_list(
     """Проверка работоспособности эндпоинтов localhost/api/v1/films/{films_id}
     на совпадение данных возвращаемых клиенту и данных из редиса и эластика"""
     url_address = f"{url}{url_id}"
-    response_films = await http_request(session_client, url_address, expected_answer["status"])
-    elastic = await elastic_search_list_fixture(test_settings.movies_index, id=url_id)
+    response_films = await http_request(
+        session_client, url_address, expected_answer["status"]
+    )
+    elastic = await elastic_search_by_id(
+        es_client, test_settings.movies_index, id_=url_id
+    )
     elastic_films = {}
     for key, value in elastic.items():
         if key not in ("writers_names", "actors_names"):
             elastic_films[key] = value
-    redis_films = await redis_get_fixture(url_address)
+    redis_films = await redis_get(redis_client, url_address)
     await redis_delete_fixture(url_address)
 
     assert len(elastic_films) == len(response_films) == len(redis_films)

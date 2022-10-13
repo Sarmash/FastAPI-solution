@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 import aiohttp
 import pytest
@@ -62,33 +61,6 @@ async def es_write_persons(es_client: AsyncElasticsearch):
     await elastic_filling_index(es_client, test_settings.persons_index, PERSONS)
     yield
     await elastic_delete_data(es_client, test_settings.persons_index)
-
-
-@pytest.fixture
-def elastic_search_list_fixture(es_client: AsyncElasticsearch):
-    async def inner(index: str, id: str = None, size: int = 50):
-        if id:
-            response_elastic = await es_client.get(index=index, id=id)
-            return response_elastic["_source"]
-        else:
-            response_elastic = await es_client.search(index=index, size=size)
-            response_elastic = response_elastic["hits"]["hits"]
-            return [item["_source"] for item in response_elastic]
-
-    return inner
-
-
-@pytest.fixture
-def redis_get_fixture(redis_client: RedisConnection):
-    async def inner(key: str):
-        response = await redis_client.execute("GET", key)
-        response = json.loads(response)
-        if isinstance(response, list):
-            return [json.loads(i) for i in response]
-        else:
-            return response
-
-    return inner
 
 
 @pytest.fixture
