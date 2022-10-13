@@ -26,13 +26,11 @@ async def test_person(
     response_elastic = await elastic_search_by_id(
         es_client, test_settings.persons_index, "111"
     )
-    redis_response = await redis_get_fixture(url)
     assert response.status == 200
     assert len(body) == 1
-    assert body[0]["id"] == response_elastic["id"] == redis_response[0]['id']
+    assert body[0]["id"] == response_elastic["id"]
     await es_delete_data(test_settings.movies_index)
     await es_delete_data(test_settings.persons_index)
-    await redis_delete_fixture(url)
 
 
 @pytest.mark.parametrize(
