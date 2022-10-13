@@ -41,3 +41,23 @@ async def http_request(client: ClientSession, request: str, status_code: int) ->
     response_api = await client.get(request)
     assert response_api.status == status_code
     return await response_api.json()
+
+
+def get_es_bulk_query(data: List[dict], index: str, id: str):
+    bulk_query = []
+    for row in data:
+        bulk_query.extend(
+            [json.dumps({"index": {"_index": index, "_id": row[id]}}), json.dumps(row)]
+        )
+
+    return bulk_query
+
+
+async def elastic_filling_index(
+    client: AsyncElasticsearch, index: str, data: List[dict]
+):
+    bulk_query = get_es_bulk_query(data, index, "id")
+    str_query = "\n".join(bulk_query) + "\n"
+    response = await client.bulk(str_query, refresh=True)
+    if response["errors"]:
+        raise Exception("Ошибка записи данных в Elasticsearch")

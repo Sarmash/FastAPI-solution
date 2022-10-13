@@ -11,12 +11,9 @@ from ..utils.helpers import (
 
 
 @pytest.mark.asyncio
-async def test_genre_list_200(
-    session_client, es_client, redis_client, es_write_data, es_delete_data
-):
+async def test_genre_list_200(session_client, es_client, redis_client, es_write_genre):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
-    await es_write_data(GENRES, test_settings.genres_index)
     response_api = await http_request(
         session_client,
         f"{test_settings.service_url}{test_settings.genres_endpoint}",
@@ -29,7 +26,6 @@ async def test_genre_list_200(
     response_redis = await redis_get(
         redis_client, f"{test_settings.service_url}{test_settings.genres_endpoint}"
     )
-    await es_delete_data((test_settings.genres_index,))
     assert len(response_api) == len(response_elastic) == len(response_redis)
 
     assert (
@@ -41,6 +37,9 @@ async def test_genre_list_200(
         {i["genre"] for i in response_api}
         == {i["genre"] for i in response_elastic}
         == {i["genre"] for i in response_redis}
+    )
+    await redis_client.execute(
+        "DEL", f"{test_settings.service_url}{test_settings.genres_endpoint}"
     )
 
 
@@ -57,8 +56,8 @@ async def test_genre_list_200(
         ),
         (
             f"{test_settings.service_url}{test_settings.genres_endpoint}?page[number]=10&page[size]=10",
-            404
-        )
+            404,
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -78,17 +77,10 @@ async def test_genre_list_422(session_client, response, code_result):
 )
 @pytest.mark.asyncio
 async def test_genre_by_id_200(
-    session_client,
-    es_client,
-    redis_client,
-    genre_id,
-    status_code,
-    es_write_data,
-    es_delete_data,
+    session_client, es_client, redis_client, genre_id, status_code, es_write_genre
 ):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres/{id_genre}
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
-    await es_write_data(GENRES, test_settings.genres_index)
 
     response_api = await http_request(
         session_client,
@@ -99,7 +91,6 @@ async def test_genre_by_id_200(
     response_elastic = await elastic_search_by_id(
         es_client, test_settings.genres_index, genre_id
     )
-    await es_delete_data((test_settings.genres_index,))
     response_redis = await redis_get(
         redis_client,
         f"{test_settings.service_url}" f"{test_settings.genres_endpoint}" f"{genre_id}",

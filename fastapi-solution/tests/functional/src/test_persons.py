@@ -7,11 +7,7 @@ from ..testdata.data import PERSONS, MOVIES
 
 @pytest.mark.asyncio
 async def test_person(
-        es_write_persons,
-        es_write_data,
-        session_client,
-        es_client,
-        es_delete_data
+    es_write_persons, es_write_data, session_client, es_client, es_delete_data
 ):
     """
     Тест запроса существующей персоны
@@ -41,7 +37,7 @@ async def test_person_not_found(
     es_write_persons,
     query_data,
     expected_answer,
-    es_delete_data
+    es_delete_data,
 ):
     """
     Тест запроса несуществующей персоны
@@ -61,10 +57,7 @@ async def test_person_not_found(
 
 @pytest.mark.asyncio
 async def test_pagination_200(
-    session_client,
-    es_write_data,
-    es_write_persons,
-    es_delete_data
+    session_client, es_write_data, es_write_persons, es_delete_data
 ):
     """
     Тест корректной работы пагинцации, запрос существующей страницы
@@ -84,10 +77,7 @@ async def test_pagination_200(
 
 @pytest.mark.asyncio
 async def test_pagination_404(
-    session_client,
-    es_write_data,
-    es_write_persons,
-    es_delete_data
+    session_client, es_write_data, es_write_persons, es_delete_data
 ):
     """
     Тест пагинцации, запрос несуществующей страницы
@@ -102,7 +92,6 @@ async def test_pagination_404(
     response = await session_client.get(url)
     assert response.status == 404
     await es_delete_data((test_settings.movies_index, test_settings.persons_index))
-
 
 
 @pytest.mark.parametrize(
@@ -122,12 +111,7 @@ async def test_pagination_404(
 )
 @pytest.mark.asyncio
 async def test_pagination_422(
-    session_client,
-    params,
-    status_code,
-    es_write_data,
-    es_write_persons,
-    es_delete_data
+    session_client, params, status_code, es_write_data, es_write_persons, es_delete_data
 ):
     """
     Крайние случаи получения некорректного ввода пагинации
