@@ -1,6 +1,5 @@
 import asyncio
 import json
-from typing import List
 
 import aiohttp
 import pytest
@@ -10,7 +9,7 @@ from elasticsearch import AsyncElasticsearch
 
 from .testdata.data import GENRES, MOVIES, PERSONS
 from .settings import test_settings
-from .utils.helpers import elastic_filling_index, get_es_bulk_query, elastic_delete_data
+from .utils.helpers import elastic_filling_index, elastic_delete_data
 
 
 @pytest.fixture(scope="session")
@@ -44,18 +43,6 @@ async def session_client():
     await session.close()
 
 
-@pytest.fixture
-def es_write_data(es_client: AsyncElasticsearch):
-    async def inner(data: List[dict], index: str):
-        bulk_query = get_es_bulk_query(data, index, test_settings.movies_id_field)
-        str_query = "\n".join(bulk_query) + "\n"
-        response = await es_client.bulk(str_query, refresh=True)
-        if response["errors"]:
-            raise Exception("Ошибка записи данных в Elasticsearch")
-
-    return inner
-
-
 @pytest_asyncio.fixture(scope="function")
 async def es_write_genre(es_client: AsyncElasticsearch):
     await elastic_filling_index(es_client, test_settings.genres_index, GENRES)
@@ -75,26 +62,6 @@ async def es_write_persons(es_client: AsyncElasticsearch):
     await elastic_filling_index(es_client, test_settings.persons_index, PERSONS)
     yield
     await elastic_delete_data(es_client, test_settings.persons_index)
-
-
-@pytest.fixture
-def make_get_request(session_client: aiohttp.ClientSession):
-    async def session(url: str, query_data: dict):
-        response = await session_client.get(url, params=query_data)
-
-        return response
-
-    return session
-
-
-@pytest.fixture
-def make_get_request_url(session_client: aiohttp.ClientSession):
-    async def session(url):
-        response = await session_client.get(url)
-
-        return response
-
-    return session
 
 
 @pytest.fixture

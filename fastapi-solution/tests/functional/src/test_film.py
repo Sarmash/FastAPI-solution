@@ -3,6 +3,7 @@ from operator import itemgetter
 import pytest
 
 from ..settings import test_settings
+from ..utils.helpers import http_request
 
 
 @pytest.mark.parametrize(
@@ -21,7 +22,7 @@ from ..settings import test_settings
 @pytest.mark.asyncio
 async def test_films_list_200(
     es_write_movies,
-    make_get_request_url,
+    session_client,
     elastic_search_list_fixture,
     redis_get_fixture,
     redis_delete_fixture,
@@ -30,8 +31,7 @@ async def test_films_list_200(
 ):
     """Проверка работоспособности эндпоинтов localhost/api/v1/films
     на совпадение данных возвращаемых клиенту и данных из редиса и эластика"""
-    response = await make_get_request_url(url)
-    response_films = await response.json()
+    response_films = await http_request(session_client, url, expected_answer['status'])
     elastic = await elastic_search_list_fixture(test_settings.movies_index)
     elastic_films = [
         {"id": i["id"], "title": i["title"], "imdb_rating": i["imdb_rating"]}
@@ -46,7 +46,6 @@ async def test_films_list_200(
     result = True if all(x == y and x == z for x, y, z in pairs) else False
     await redis_delete_fixture(url)
 
-    assert response.status == expected_answer["status"]
     assert len(elastic_films) == len(response_films) == len(redis_films)
     assert result
 
@@ -74,7 +73,7 @@ async def test_films_list_200(
 @pytest.mark.asyncio
 async def test_films_list(
     es_write_movies,
-    make_get_request_url,
+    session_client,
     elastic_search_list_fixture,
     redis_get_fixture,
     redis_delete_fixture,
@@ -85,8 +84,7 @@ async def test_films_list(
     """Проверка работоспособности эндпоинтов localhost/api/v1/films/{films_id}
     на совпадение данных возвращаемых клиенту и данных из редиса и эластика"""
     url_address = f"{url}{url_id}"
-    response = await make_get_request_url(url_address)
-    response_films = await response.json()
+    response_films = await http_request(session_client, url_address, expected_answer["status"])
     elastic = await elastic_search_list_fixture(test_settings.movies_index, id=url_id)
     elastic_films = {}
     for key, value in elastic.items():
@@ -95,7 +93,6 @@ async def test_films_list(
     redis_films = await redis_get_fixture(url_address)
     await redis_delete_fixture(url_address)
 
-    assert response.status == expected_answer["status"]
     assert len(elastic_films) == len(response_films) == len(redis_films)
     assert elastic_films == response_films == redis_films
 
@@ -124,7 +121,7 @@ async def test_films_list(
 @pytest.mark.asyncio
 async def test_genre_list_422(
     es_write_movies,
-    make_get_request_url,
+    session_client,
     redis_delete_fixture,
     url: str,
     code_result: int,
@@ -132,7 +129,7 @@ async def test_genre_list_422(
     """Крайние случаи получения некорректного ввода пагинации.
     Запрос несуществующей страницы пагинации.
     Проверка запроса с некорректным идентификатором фильма."""
-    response_api = await make_get_request_url(url)
+    response_api = await session_client.get(url)
     await redis_delete_fixture(url)
 
     assert response_api.status == code_result
