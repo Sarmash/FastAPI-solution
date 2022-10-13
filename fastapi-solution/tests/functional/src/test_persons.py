@@ -1,12 +1,19 @@
 import pytest
 
 from ..settings import test_settings
-from ..utils.helpers import elastic_search_by_id
+from ..utils.helpers import elastic_search_by_id, redis_get
 from ..testdata.http_exeptions import PERSON_NOT_FOUND
 
 
 @pytest.mark.asyncio
-async def test_person(es_write_persons, redis_delete_fixture, redis_get_fixture, es_write_movies, session_client, es_client):
+async def test_person(
+    es_write_persons,
+    redis_delete_fixture,
+    redis_client,
+    es_write_movies,
+    session_client,
+    es_client,
+):
     """
     Тест запроса существующей персоны
     """
@@ -16,11 +23,11 @@ async def test_person(es_write_persons, redis_delete_fixture, redis_get_fixture,
     response_elastic = await elastic_search_by_id(
         es_client, test_settings.persons_index, "111"
     )
-    response_redis = await redis_get_fixture(f"{url}/")
+    response_redis = await redis_get(redis_client, f"{url}/")
     assert response.status == 200
     assert len(body) == 1
     assert body[0]["id"] == response_elastic["id"] == response_redis[0]["id"]
-    await redis_delete_fixture(f"{url}/")
+    await redis_delete_fixture()
 
 
 @pytest.mark.parametrize(
@@ -49,7 +56,13 @@ async def test_person_not_found(
 
 
 @pytest.mark.asyncio
-async def test_pagination_200(session_client, redis_delete_fixture, redis_get_fixture, es_write_persons, es_write_movies):
+async def test_pagination_200(
+    session_client,
+    redis_delete_fixture,
+    es_write_persons,
+    es_write_movies,
+    redis_client,
+):
     """
     Тест корректной работы пагинцации, запрос существующей страницы
     """
@@ -59,27 +72,20 @@ async def test_pagination_200(session_client, redis_delete_fixture, redis_get_fi
         f"search?query=Ben&page[number]=1&page[size]=1"
     )
     response = await session_client.get(url)
-    response_redis = await redis_get_fixture(
+    response_redis = await redis_get(
+        redis_client,
         f"{test_settings.service_url}"
         f"{test_settings.persons_endpoint}"
-        f"search?query=Ben&page%5Bnumber%5D=1&page%5Bsize%5D=1")
+        f"search?query=Ben&page%5Bnumber%5D=1&page%5Bsize%5D=1",
+    )
     body = await response.json()
     assert len(body) == len(response_redis) == 1
 
-    await redis_delete_fixture(
-        f"{test_settings.service_url}"
-        f"{test_settings.persons_endpoint}"
-        f"search?query=Ben&page%5Bnumber%5D=1&page%5Bsize%5D=1"
-    )
+    await redis_delete_fixture()
 
 
 @pytest.mark.asyncio
-async def test_pagination_404(
-    session_client,
-    es_write_movies,
-    es_write_persons,
-    es_client,
-):
+async def test_pagination_404(session_client):
     """
     Тест пагинцации, запрос несуществующей страницы
     """

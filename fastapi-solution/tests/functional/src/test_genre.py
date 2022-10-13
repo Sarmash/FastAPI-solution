@@ -41,7 +41,7 @@ async def test_genre_list_200(
         == {i["genre"] for i in response_elastic}
         == {i["genre"] for i in response_redis}
     )
-    await redis_delete_fixture(request_url)
+    await redis_delete_fixture()
 
 
 @pytest.mark.parametrize(
@@ -106,7 +106,7 @@ async def test_genre_by_id_200(
     )
 
     assert response_api["id"] == response_elastic["id"] == response_redis["id"]
-    await redis_delete_fixture(request_url)
+    await redis_delete_fixture()
 
 
 @pytest.mark.asyncio

@@ -49,7 +49,7 @@ async def test_films_list_200(
     ]
     pairs = zip(response_films, redis_films, elastic_films)
     result = True if all(x == y and x == z for x, y, z in pairs) else False
-    await redis_delete_fixture(url)
+    await redis_delete_fixture()
 
     assert len(elastic_films) == len(response_films) == len(redis_films)
     assert result
@@ -100,7 +100,7 @@ async def test_films_list(
         if key not in ("writers_names", "actors_names"):
             elastic_films[key] = value
     redis_films = await redis_get(redis_client, url_address)
-    await redis_delete_fixture(url_address)
+    await redis_delete_fixture()
 
     assert len(elastic_films) == len(response_films) == len(redis_films)
     assert elastic_films == response_films == redis_films
@@ -139,6 +139,6 @@ async def test_genre_list_422(
     Запрос несуществующей страницы пагинации.
     Проверка запроса с некорректным идентификатором фильма."""
     response_api = await session_client.get(url)
-    await redis_delete_fixture(url)
+    await redis_delete_fixture()
 
     assert response_api.status == code_result

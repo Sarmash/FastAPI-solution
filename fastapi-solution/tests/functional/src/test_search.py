@@ -53,7 +53,7 @@ async def test_films_search_200(
         == {i["id"] for i in response_elastic}
         == {i["id"] for i in response_redis}
     )
-    await redis_delete_fixture(request_url)
+    await redis_delete_fixture()
 
 
 @pytest.mark.parametrize(
@@ -82,7 +82,7 @@ async def test_pagination_films_search_200(
     response_api = await http_request(session_client, request_url, status_code)
 
     assert len(response_api) == movies == size
-    await redis_delete_fixture(request_url)
+    await redis_delete_fixture()
 
 
 @pytest.mark.parametrize(
@@ -166,7 +166,7 @@ async def test_person_search_200(
             response_film_ids.add(j)
 
     assert response_film_ids == {film["id"] for film in response_elastic}
-    await redis_delete_fixture(request_url)
+    await redis_delete_fixture()
 
 
 @pytest.mark.parametrize(
@@ -194,7 +194,7 @@ async def test_pagination_persons_search_200(
 
     response_api = await http_request(session_client, request_url, status_code)
     assert len(response_api) == films == size
-    await redis_delete_fixture(request_url)
+    await redis_delete_fixture()
 
 
 @pytest.mark.parametrize(
