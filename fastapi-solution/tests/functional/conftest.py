@@ -1,6 +1,4 @@
 import asyncio
-import json
-from typing import List
 
 import aiohttp
 import pytest
@@ -8,8 +6,9 @@ import pytest_asyncio
 from aioredis import RedisConnection, create_connection
 from elasticsearch import AsyncElasticsearch
 
-from .base_function import get_es_bulk_query
+from .testdata.data import GENRES, MOVIES, PERSONS
 from .settings import test_settings
+from .utils.helpers import elastic_filling_index, elastic_delete_data
 
 
 @pytest.fixture(scope="session")
@@ -22,6 +21,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session")
 async def redis_client():
+    """Создание подключения к редис"""
     client = await create_connection(
         (test_settings.redis_host, test_settings.redis_port)
     )
@@ -31,6 +31,7 @@ async def redis_client():
 
 @pytest_asyncio.fixture(scope="session")
 async def es_client():
+    """Создание подключения к elasticsearch"""
     client = AsyncElasticsearch(hosts=test_settings.es_host)
     yield client
     await client.close()
@@ -38,111 +39,41 @@ async def es_client():
 
 @pytest_asyncio.fixture(scope="session")
 async def session_client():
+    """Создание http сессии"""
     session = aiohttp.ClientSession()
     yield session
     await session.close()
 
 
-@pytest.fixture
-def es_write_data(es_client: AsyncElasticsearch):
-    async def inner(data: List[dict]):
-        bulk_query = get_es_bulk_query(
-            data, test_settings.movies_index, test_settings.movies_id_field
-        )
-        str_query = "\n".join(bulk_query) + "\n"
-        response = await es_client.bulk(str_query, refresh=True)
-        if response["errors"]:
-            raise Exception("Ошибка записи данных в Elasticsearch")
-
-    return inner
+@pytest_asyncio.fixture(scope="function")
+async def es_write_genre(es_client: AsyncElasticsearch):
+    """Фикстура для записи и удаления данных из индекса жанров в elasticsearch"""
+    await elastic_filling_index(es_client, test_settings.genres_index, GENRES)
+    yield
+    await elastic_delete_data(es_client, test_settings.genres_index)
 
 
-@pytest.fixture
-def es_delete_data(es_client: AsyncElasticsearch):
-    async def inner(index: str):
-        await es_client.delete_by_query(
-            conflicts="proceed", index=index, body={"query": {"match_all": {}}}
-        )
-
-    return inner
+@pytest_asyncio.fixture(scope="function")
+async def es_write_movies(es_client: AsyncElasticsearch):
+    """Фикстура для записи и удаления данных из индекса кинопроизведений в elasticsearch"""
+    await elastic_filling_index(es_client, test_settings.movies_index, MOVIES)
+    yield
+    await elastic_delete_data(es_client, test_settings.movies_index)
 
 
-@pytest.fixture
-def es_write_persons(es_client):
-    async def gen_data_persons(es_data_persons: List[dict]):
-        bulk_query_perons = []
-        for row in es_data_persons:
-            bulk_query_perons.extend(
-                [
-                    json.dumps(
-                        {
-                            "index": {
-                                "_index": test_settings.persons_index,
-                                "_id": row[test_settings.persons_id_field],
-                            }
-                        }
-                    ),
-                    json.dumps(row),
-                ]
-            )
-        str_query = "\n".join(bulk_query_perons) + "\n"
-        response = await es_client.bulk(str_query, refresh=True)
-        if response["errors"]:
-            raise Exception("Ошибка записи данных в Elasticsearch")
-
-    return gen_data_persons
-
-
-@pytest.fixture
-def make_get_request(session_client: aiohttp.ClientSession):
-    async def session(url: str, query_data: dict):
-        response = await session_client.get(url, params=query_data)
-
-        return response
-
-    return session
-
-
-@pytest.fixture
-def make_get_request_url(session_client: aiohttp.ClientSession):
-    async def session(url):
-        response = await session_client.get(url)
-
-        return response
-
-    return session
-
-
-@pytest.fixture
-def elastic_search_list_fixture(es_client: AsyncElasticsearch):
-    async def inner(index: str, id: str = None, size: int = 50):
-        if id:
-            response_elastic = await es_client.get(index=index, id=id)
-            return response_elastic["_source"]
-        else:
-            response_elastic = await es_client.search(index=index, size=size)
-            response_elastic = response_elastic["hits"]["hits"]
-            return [item["_source"] for item in response_elastic]
-
-    return inner
-
-
-@pytest.fixture
-def redis_get_fixture(redis_client: RedisConnection):
-    async def inner(key: str):
-        response = await redis_client.execute("GET", key)
-        response = json.loads(response)
-        if isinstance(response, list):
-            return [json.loads(i) for i in response]
-        else:
-            return response
-
-    return inner
+@pytest_asyncio.fixture(scope="function")
+async def es_write_persons(es_client: AsyncElasticsearch):
+    """Фикстура для записи и удаления данных из индекса персон в elasticsearch"""
+    await elastic_filling_index(es_client, test_settings.persons_index, PERSONS)
+    yield
+    await elastic_delete_data(es_client, test_settings.persons_index)
 
 
 @pytest.fixture
 def redis_delete_fixture(redis_client: RedisConnection):
-    async def inner(key: str):
-        await redis_client.execute("DEL", key)
+    """Фикстура для очистки данных в редис по ключу"""
+
+    async def inner():
+        await redis_client.execute("FLUSHDB")
 
     return inner

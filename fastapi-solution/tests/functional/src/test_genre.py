@@ -1,21 +1,27 @@
 import pytest
 
 from ..settings import test_settings
-from ..testdata.filling_elastic import GENRES, filling_indexes
-from ..utils.helpers import elastic_search_by_id, elastic_search_list, redis_get
+from ..testdata.data import GENRES
+from ..utils.helpers import (
+    elastic_search_by_id,
+    elastic_search_list,
+    redis_get,
+    http_request,
+)
 
 
 @pytest.mark.asyncio
-async def test_genre_list_200(session_client, es_client, redis_client):
+async def test_genre_list_200(
+    session_client, es_client, redis_client, redis_delete_fixture, es_write_genre
+):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
-    filling_indexes()
-    response_api = await session_client.get(
-        f"{test_settings.service_url}{test_settings.genres_endpoint}"
+    request_url = f"{test_settings.service_url}{test_settings.genres_endpoint}"
+    response_api = await http_request(
+        session_client,
+        request_url,
+        200,
     )
-    assert response_api.status == 200
-    response_api = await response_api.json()
-
     response_elastic = await elastic_search_list(
         client=es_client, index=test_settings.genres_index
     )
@@ -23,7 +29,6 @@ async def test_genre_list_200(session_client, es_client, redis_client):
     response_redis = await redis_get(
         redis_client, f"{test_settings.service_url}{test_settings.genres_endpoint}"
     )
-
     assert len(response_api) == len(response_elastic) == len(response_redis)
 
     assert (
@@ -36,6 +41,7 @@ async def test_genre_list_200(session_client, es_client, redis_client):
         == {i["genre"] for i in response_elastic}
         == {i["genre"] for i in response_redis}
     )
+    await redis_delete_fixture()
 
 
 @pytest.mark.parametrize(
@@ -48,6 +54,10 @@ async def test_genre_list_200(session_client, es_client, redis_client):
         (
             f"{test_settings.service_url}{test_settings.genres_endpoint}?page[number]=-1&page[size]=5",
             422,
+        ),
+        (
+            f"{test_settings.service_url}{test_settings.genres_endpoint}?page[number]=10&page[size]=10",
+            404,
         ),
     ],
 )
@@ -62,45 +72,41 @@ async def test_genre_list_422(session_client, response, code_result):
     assert response_api.status == code_result
 
 
-@pytest.mark.asyncio
-async def test_genre_list_404(session_client):
-    """Запрос несуществующей страницы пагинации"""
-
-    response_api = await session_client.get(
-        f"{test_settings.service_url}"
-        f"{test_settings.genres_endpoint}"
-        f"?page[number]=10&page[size]=10"
-    )
-    assert response_api.status == 404
-
-
 @pytest.mark.parametrize(
     "genre_id, status_code",
     [(GENRES[0]["id"], 200), (GENRES[1]["id"], 200), (GENRES[2]["id"], 200)],
 )
 @pytest.mark.asyncio
 async def test_genre_by_id_200(
-    session_client, es_client, redis_client, genre_id, status_code
+    session_client,
+    es_client,
+    redis_client,
+    genre_id,
+    status_code,
+    redis_delete_fixture,
+    es_write_genre,
 ):
     """Проверка работоспособности ендпоинта localhost/api/v1/genres/{id_genre}
     на совпадение данных возвращаемых клиенту и данных из редиса и еластика"""
-
-    response_api = await session_client.get(
-        f"{test_settings.service_url}{test_settings.genres_endpoint}{genre_id}"
+    request_url = (
+        f"{test_settings.service_url}" f"{test_settings.genres_endpoint}" f"{genre_id}"
     )
-    assert response_api.status == status_code
-    response_api = await response_api.json()
+    response_api = await http_request(
+        session_client,
+        request_url,
+        status_code,
+    )
 
     response_elastic = await elastic_search_by_id(
         es_client, test_settings.genres_index, genre_id
     )
-
     response_redis = await redis_get(
         redis_client,
         f"{test_settings.service_url}" f"{test_settings.genres_endpoint}" f"{genre_id}",
     )
 
     assert response_api["id"] == response_elastic["id"] == response_redis["id"]
+    await redis_delete_fixture()
 
 
 @pytest.mark.asyncio
