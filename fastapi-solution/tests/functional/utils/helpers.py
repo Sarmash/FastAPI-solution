@@ -61,3 +61,11 @@ async def elastic_filling_index(
     response = await client.bulk(str_query, refresh=True)
     if response["errors"]:
         raise Exception("Ошибка записи данных в Elasticsearch")
+
+
+async def elastic_delete_data(client: AsyncElasticsearch, index: str):
+    await client.delete_by_query(
+        conflicts="proceed",
+        index=index,
+        body={"query": {"match_all": {}}},
+    )
