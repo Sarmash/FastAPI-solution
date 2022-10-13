@@ -8,7 +8,7 @@ import pytest_asyncio
 from aioredis import RedisConnection, create_connection
 from elasticsearch import AsyncElasticsearch
 
-from .testdata.data import GENRES, MOVIES
+from .testdata.data import GENRES, MOVIES, PERSONS
 from .settings import test_settings
 from .utils.helpers import elastic_filling_index, get_es_bulk_query, elastic_delete_data
 
@@ -70,6 +70,13 @@ async def es_write_movies(es_client: AsyncElasticsearch):
     await elastic_delete_data(es_client, test_settings.movies_index)
 
 
+@pytest_asyncio.fixture(scope="function")
+async def es_write_persons(es_client: AsyncElasticsearch):
+    await elastic_filling_index(es_client, test_settings.persons_index, PERSONS)
+    yield
+    await elastic_delete_data(es_client, test_settings.persons_index)
+
+
 @pytest.fixture
 def es_delete_data(es_client: AsyncElasticsearch):
     async def inner(indexes: tuple):
@@ -79,32 +86,6 @@ def es_delete_data(es_client: AsyncElasticsearch):
             )
 
     return inner
-
-
-@pytest.fixture
-def es_write_persons(es_client):
-    async def gen_data_persons(es_data_persons: List[dict]):
-        bulk_query_perons = []
-        for row in es_data_persons:
-            bulk_query_perons.extend(
-                [
-                    json.dumps(
-                        {
-                            "index": {
-                                "_index": test_settings.persons_index,
-                                "_id": row[test_settings.persons_id_field],
-                            }
-                        }
-                    ),
-                    json.dumps(row),
-                ]
-            )
-        str_query = "\n".join(bulk_query_perons) + "\n"
-        response = await es_client.bulk(str_query, refresh=True)
-        if response["errors"]:
-            raise Exception("Ошибка записи данных в Elasticsearch")
-
-    return gen_data_persons
 
 
 @pytest.fixture
