@@ -8,7 +8,7 @@ import pytest_asyncio
 from aioredis import RedisConnection, create_connection
 from elasticsearch import AsyncElasticsearch
 
-from .testdata.data import GENRES
+from .testdata.data import GENRES, MOVIES
 from .settings import test_settings
 from .utils.helpers import elastic_filling_index, get_es_bulk_query
 
@@ -63,6 +63,17 @@ async def es_write_genre(es_client: AsyncElasticsearch):
     await es_client.delete_by_query(
         conflicts="proceed",
         index=test_settings.genres_index,
+        body={"query": {"match_all": {}}},
+    )
+
+
+@pytest_asyncio.fixture(scope="function")
+async def es_write_movies(es_client: AsyncElasticsearch):
+    await elastic_filling_index(es_client, test_settings.movies_index, MOVIES)
+    yield
+    await es_client.delete_by_query(
+        conflicts="proceed",
+        index=test_settings.movies_index,
         body={"query": {"match_all": {}}},
     )
 
