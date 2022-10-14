@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Callable, Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
@@ -7,6 +8,18 @@ es: Optional[AsyncElasticsearch] = None
 
 async def get_elastic() -> AsyncElasticsearch:
     return es
+
+
+class AsyncSearchStorage(ABC):
+    @abstractmethod
+    async def search(
+        self, body=None, index=None, doc_type=None, params=None, headers=None
+    ):
+        pass
+
+    @abstractmethod
+    async def get(self, index, id, doc_type=None, params=None, headers=None):
+        pass
 
 
 class ElasticDB:

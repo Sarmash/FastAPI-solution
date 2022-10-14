@@ -3,10 +3,8 @@ from http import HTTPStatus
 from typing import Optional
 
 import core.http_exceptions as ex
-from aioredis import Redis
-from db.elastic import ElasticDB, get_elastic
-from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch
+from db.elastic import ElasticDB, get_elastic, AsyncSearchStorage
+from db.redis import get_redis, AsyncCacheStorage
 from fastapi import Depends, HTTPException
 from models.genre import Genre
 from services.service_base import Service
@@ -46,7 +44,7 @@ class GenreService(Service):
 
 @lru_cache()
 def get_genre_service(
-    redis: Redis = Depends(get_redis),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+    cache: AsyncCacheStorage = Depends(get_redis),
+    storage: AsyncSearchStorage = Depends(get_elastic),
 ) -> GenreService:
-    return GenreService(redis, elastic)
+    return GenreService(cache, storage)

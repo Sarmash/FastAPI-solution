@@ -1,10 +1,9 @@
 from functools import lru_cache
 from typing import Optional
 
-from aioredis import Redis
-from db.elastic import ElasticDB, get_elastic
-from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch, helpers
+from db.elastic import ElasticDB, get_elastic, AsyncSearchStorage
+from db.redis import get_redis, AsyncCacheStorage
+from elasticsearch import helpers
 from fastapi import Depends
 from models.filmwork import FilmWork, FilmWorkOut
 from models.genre import Genre
@@ -68,7 +67,7 @@ class FilmService(Service):
 
 @lru_cache()
 def get_film_service(
-    redis: Redis = Depends(get_redis),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+    cache: AsyncCacheStorage = Depends(get_redis),
+    storage: AsyncSearchStorage = Depends(get_elastic),
 ) -> FilmService:
-    return FilmService(redis, elastic)
+    return FilmService(cache, storage)

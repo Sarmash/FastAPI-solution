@@ -4,10 +4,8 @@ from typing import List, Optional
 
 import core.http_exceptions as ex
 import elasticsearch.exceptions
-from aioredis import Redis
-from db.elastic import get_elastic
-from db.redis import get_redis
-from elasticsearch import AsyncElasticsearch
+from db.elastic import get_elastic, AsyncSearchStorage
+from db.redis import get_redis, AsyncCacheStorage
 from fastapi import Depends, HTTPException
 from models.filmwork import FilmWorkOut
 from models.person import PersonOut
@@ -132,7 +130,7 @@ class PersonService(Service):
 
 @lru_cache()
 def get_person_service(
-    redis: Redis = Depends(get_redis),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+    cache: AsyncCacheStorage = Depends(get_redis),
+    storage: AsyncSearchStorage = Depends(get_elastic),
 ) -> PersonService:
-    return PersonService(redis, elastic)
+    return PersonService(cache, storage)
