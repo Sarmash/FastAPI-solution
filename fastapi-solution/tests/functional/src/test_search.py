@@ -8,7 +8,13 @@ from ..utils.helpers import redis_get, elastic_search_list, http_request
 
 
 @pytest.mark.parametrize(
-    "query, status_code", [("Suzy", HTTPStatus.OK), ("Angela", HTTPStatus.OK), ("who", HTTPStatus.OK), ("star", HTTPStatus.OK)]
+    "query, status_code",
+    [
+        ("Suzy", HTTPStatus.OK),
+        ("Angela", HTTPStatus.OK),
+        ("who", HTTPStatus.OK),
+        ("star", HTTPStatus.OK),
+    ],
 )
 @pytest.mark.asyncio
 async def test_films_search_200(
@@ -61,7 +67,11 @@ async def test_films_search_200(
 
 @pytest.mark.parametrize(
     "query, status_code, movies, size",
-    [("star", HTTPStatus.OK, 3, 3), ("star", HTTPStatus.OK, 4, 4), ("star", HTTPStatus.OK, 5, 5)],
+    [
+        ("star", HTTPStatus.OK, 3, 3),
+        ("star", HTTPStatus.OK, 4, 4),
+        ("star", HTTPStatus.OK, 5, 5),
+    ],
 )
 @pytest.mark.asyncio
 async def test_pagination_films_search_200(
@@ -96,9 +106,7 @@ async def test_pagination_films_search_200(
     ],
 )
 @pytest.mark.asyncio
-async def test_films_search_404(
-    session_client, query, status_code
-):
+async def test_films_search_404(session_client, query, status_code):
     """Проверка крайних случаев ошибки в запросе"""
 
     request_url = (
@@ -114,7 +122,11 @@ async def test_films_search_404(
 
 @pytest.mark.parametrize(
     "query, status_code",
-    [("Suzy+Stokey", HTTPStatus.OK), ("Fred+Olen+Ray", HTTPStatus.OK), ("Sandy+Brooke", HTTPStatus.OK)],
+    [
+        ("Suzy+Stokey", HTTPStatus.OK),
+        ("Fred+Olen+Ray", HTTPStatus.OK),
+        ("Sandy+Brooke", HTTPStatus.OK),
+    ],
 )
 @pytest.mark.asyncio
 async def test_person_search_200(
@@ -208,9 +220,7 @@ async def test_pagination_persons_search_200(
     ],
 )
 @pytest.mark.asyncio
-async def test_person_search_404(
-    session_client, query, status_code
-):
+async def test_person_search_404(session_client, query, status_code):
     """Проверка крайних случаев ошибки в запросе"""
 
     request_url = (

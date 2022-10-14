@@ -76,7 +76,11 @@ async def test_genre_list_422(session_client, response, code_result):
 
 @pytest.mark.parametrize(
     "genre_id, status_code",
-    [(GENRES[0]["id"], HTTPStatus.OK), (GENRES[1]["id"], HTTPStatus.OK), (GENRES[2]["id"], HTTPStatus.OK)],
+    [
+        (GENRES[0]["id"], HTTPStatus.OK),
+        (GENRES[1]["id"], HTTPStatus.OK),
+        (GENRES[2]["id"], HTTPStatus.OK),
+    ],
 )
 @pytest.mark.asyncio
 async def test_genre_by_id_200(
