@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from operator import itemgetter
 
 import pytest
@@ -15,11 +16,11 @@ from ..utils.helpers import (
     "expected_answer, url",
     [
         (
-            {"status": 200},
+            {"status": HTTPStatus.OK},
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
         ),
         (
-            {"status": 200},
+            {"status": HTTPStatus.OK},
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
         ),
     ],
@@ -59,17 +60,17 @@ async def test_films_list_200(
     "expected_answer, url, url_id",
     [
         (
-            {"status": 200},
+            {"status": HTTPStatus.OK},
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
             "c0142274-dc57-4a3a-a8fe-4c0a229c60f8",
         ),
         (
-            {"status": 200},
+            {"status": HTTPStatus.OK},
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
             "c5dc6c27-1c24-4965-8acc-ae7dcd20801c",
         ),
         (
-            {"status": 200},
+            {"status": HTTPStatus.OK},
             f"{test_settings.service_url}{test_settings.movies_endpoint}",
             "c0142274-dc57-4a3a-a8fe-4c0a229c60f1",
         ),
@@ -111,19 +112,19 @@ async def test_films_list(
     [
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}?page[number]=0&page[size]=5",
-            422,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}?page[number]=-5&page[size]=5",
-            422,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}?page[number]=10&page[size]=10",
-            404,
+            HTTPStatus.NOT_FOUND,
         ),
         (
             f"{test_settings.service_url}{test_settings.movies_endpoint}/c0142274-dc57-4a3a-a8fe-4c0a229c6005",
-            404,
+            HTTPStatus.NOT_FOUND,
         ),
     ],
 )
