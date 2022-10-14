@@ -112,11 +112,7 @@ async def test_pagination_404(session_client):
     ],
 )
 @pytest.mark.asyncio
-async def test_pagination_422(
-    session_client,
-    params,
-    status_code
-):
+async def test_pagination_422(session_client, params, status_code):
     """
     Крайние случаи получения некорректного ввода пагинации
     """

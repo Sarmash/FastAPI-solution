@@ -2,6 +2,7 @@ from pydantic import BaseSettings, Field
 
 
 class TestSettings(BaseSettings):
+    container: str = Field("functional", env="CONTAINER")
     es_host: str = Field("http://localhost:9200/", env="ELASTICSEARCH")
 
     movies_index: str = "movies"
