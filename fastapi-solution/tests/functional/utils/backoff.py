@@ -5,6 +5,7 @@ from functools import wraps
 from logging import Logger
 
 import elasticsearch
+import redis
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,15 @@ def backoff(
                         f"Осталось попыток {connection_attempts - try_}"
                     )
                     connect_timer = connect_timer * 2**factor
+                    try_ += 1
+                    if connect_timer > border_sleep_time:
+                        connect_timer = start_sleep_time
+                except redis.exceptions.ConnectionError:
+                    log.warning(
+                        f"redis соединение потеряно, следующая попытка соединения {connect_timer} sec "
+                        f"Осталось попыток {connection_attempts - try_}"
+                    )
+                    connect_timer = connect_timer * 2 ** factor
                     try_ += 1
                     if connect_timer > border_sleep_time:
                         connect_timer = start_sleep_time

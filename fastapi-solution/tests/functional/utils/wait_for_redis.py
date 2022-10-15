@@ -8,7 +8,7 @@ from backoff import backoff
 async def wait_for_redis():
     redis_client = redis.Redis(host="redis", port=6379, db=0)
     if not redis_client.ping():
-        raise ConnectionRefusedError
+        raise redis.exceptions.ConnectionError
 
 
 if __name__ == "__main__":
