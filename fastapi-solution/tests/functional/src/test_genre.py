@@ -4,12 +4,8 @@ import pytest
 
 from ..settings import test_settings
 from ..testdata.data import GENRES
-from ..utils.helpers import (
-    elastic_search_by_id,
-    elastic_search_list,
-    redis_get,
-    http_request,
-)
+from ..utils.helpers import (elastic_search_by_id, elastic_search_list,
+                             http_request, redis_get)
 
 
 @pytest.mark.asyncio
