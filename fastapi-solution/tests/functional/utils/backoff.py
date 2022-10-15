@@ -1,10 +1,12 @@
+import logging
 import socket
 import time
 from functools import wraps
 from logging import Logger
 
 import elasticsearch
-from logger import logger
+
+logger = logging.getLogger(__name__)
 
 
 def backoff(

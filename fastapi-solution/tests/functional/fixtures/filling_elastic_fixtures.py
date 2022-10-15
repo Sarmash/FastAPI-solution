@@ -3,7 +3,7 @@ from elasticsearch import AsyncElasticsearch
 
 from ..settings import test_settings
 from ..testdata.data import GENRES, MOVIES, PERSONS
-from ..utils.helpers import elastic_filling_index, elastic_delete_data
+from ..utils.helpers import elastic_delete_data, elastic_filling_index
 
 
 @pytest_asyncio.fixture(scope="function")

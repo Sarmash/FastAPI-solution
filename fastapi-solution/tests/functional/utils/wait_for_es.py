@@ -1,9 +1,8 @@
-import elasticsearch
 import asyncio
 
-from elasticsearch import Elasticsearch
-
+import elasticsearch
 from backoff import backoff
+from elasticsearch import Elasticsearch
 
 
 @backoff()

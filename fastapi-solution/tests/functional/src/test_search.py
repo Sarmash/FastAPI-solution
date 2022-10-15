@@ -4,7 +4,7 @@ import pytest
 
 from ..settings import test_settings
 from ..testdata.http_exeptions import FILM_NOT_FOUND
-from ..utils.helpers import redis_get, elastic_search_list, http_request
+from ..utils.helpers import elastic_search_list, http_request, redis_get
 
 
 @pytest.mark.parametrize(

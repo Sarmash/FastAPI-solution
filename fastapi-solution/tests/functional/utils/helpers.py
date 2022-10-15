@@ -1,9 +1,9 @@
 import json
-from typing import Union, List
+from typing import List, Union
 
+from aiohttp import ClientSession
 from aioredis import RedisConnection
 from elasticsearch import AsyncElasticsearch
-from aiohttp import ClientSession
 
 
 async def elastic_search_list(

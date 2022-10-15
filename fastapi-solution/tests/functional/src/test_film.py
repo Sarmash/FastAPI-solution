@@ -4,12 +4,8 @@ from operator import itemgetter
 import pytest
 
 from ..settings import test_settings
-from ..utils.helpers import (
-    http_request,
-    elastic_search_list,
-    elastic_search_by_id,
-    redis_get,
-)
+from ..utils.helpers import (elastic_search_by_id, elastic_search_list,
+                             http_request, redis_get)
 
 
 @pytest.mark.parametrize(
