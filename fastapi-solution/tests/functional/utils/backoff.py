@@ -64,24 +64,6 @@ def backoff(
                     try_ += 1
                     if connect_timer > border_sleep_time:
                         connect_timer = start_sleep_time
-                except ConnectionRefusedError:
-                    log.warning(
-                        f"redis соединение потеряно, следующая попытка соединения {connect_timer} sec "
-                        f"Осталось попыток {connection_attempts - try_}"
-                    )
-                    connect_timer = connect_timer * 2**factor
-                    try_ += 1
-                    if connect_timer > border_sleep_time:
-                        connect_timer = start_sleep_time
-                except socket.gaierror:
-                    log.warning(
-                        f"redis соединение потеряно, следующая попытка соединения {connect_timer} sec "
-                        f"Осталось попыток {connection_attempts - try_}"
-                    )
-                    connect_timer = connect_timer * 2**factor
-                    try_ += 1
-                    if connect_timer > border_sleep_time:
-                        connect_timer = start_sleep_time
 
         return inner
 
