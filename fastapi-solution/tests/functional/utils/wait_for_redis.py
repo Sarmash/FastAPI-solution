@@ -1,11 +1,16 @@
-import time
+import asyncio
+
+from backoff import backoff
 
 from aioredis import Redis
 
-if __name__ == "__main__":
-    # redis_client = redis.Redis(host="localhost", port=6379, db=0)
+
+@backoff()
+async def wait_for_redis():
     redis_client = Redis("redis://localhost")
-    while True:
-        if redis_client:
-            break
-        time.sleep(1)
+    if not redis_client:
+        raise ConnectionRefusedError
+
+
+if __name__ == "__main__":
+    asyncio.run(wait_for_redis())
