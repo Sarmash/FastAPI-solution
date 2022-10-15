@@ -1,11 +1,20 @@
+from http import HTTPStatus
+
 import pytest
-from ..testdata.http_exeptions import FILM_NOT_FOUND
+
 from ..settings import test_settings
+from ..testdata.http_exeptions import FILM_NOT_FOUND
 from ..utils.helpers import redis_get, elastic_search_list, http_request
 
 
 @pytest.mark.parametrize(
-    "query, status_code", [("Suzy", 200), ("Angela", 200), ("who", 200), ("star", 200)]
+    "query, status_code",
+    [
+        ("Suzy", HTTPStatus.OK),
+        ("Angela", HTTPStatus.OK),
+        ("who", HTTPStatus.OK),
+        ("star", HTTPStatus.OK),
+    ],
 )
 @pytest.mark.asyncio
 async def test_films_search_200(
@@ -58,7 +67,11 @@ async def test_films_search_200(
 
 @pytest.mark.parametrize(
     "query, status_code, movies, size",
-    [("star", 200, 3, 3), ("star", 200, 4, 4), ("star", 200, 5, 5)],
+    [
+        ("star", HTTPStatus.OK, 3, 3),
+        ("star", HTTPStatus.OK, 4, 4),
+        ("star", HTTPStatus.OK, 5, 5),
+    ],
 )
 @pytest.mark.asyncio
 async def test_pagination_films_search_200(
@@ -88,14 +101,12 @@ async def test_pagination_films_search_200(
 @pytest.mark.parametrize(
     "query, status_code",
     [
-        ("?query=123", 404),
-        ("?query=%*&", 404),
+        ("?query=123", HTTPStatus.NOT_FOUND),
+        ("?query=%*&", HTTPStatus.NOT_FOUND),
     ],
 )
 @pytest.mark.asyncio
-async def test_films_search_404(
-    session_client, query, status_code
-):
+async def test_films_search_404(session_client, query, status_code):
     """Проверка крайних случаев ошибки в запросе"""
 
     request_url = (
@@ -111,7 +122,11 @@ async def test_films_search_404(
 
 @pytest.mark.parametrize(
     "query, status_code",
-    [("Suzy+Stokey", 200), ("Fred+Olen+Ray", 200), ("Sandy+Brooke", 200)],
+    [
+        ("Suzy+Stokey", HTTPStatus.OK),
+        ("Fred+Olen+Ray", HTTPStatus.OK),
+        ("Sandy+Brooke", HTTPStatus.OK),
+    ],
 )
 @pytest.mark.asyncio
 async def test_person_search_200(
@@ -171,7 +186,7 @@ async def test_person_search_200(
 
 @pytest.mark.parametrize(
     "query, status_code, films, size",
-    [("Fred+Olen+Ray", 200, 1, 1), ("Suzy+Stokey", 200, 2, 2)],
+    [("Fred+Olen+Ray", HTTPStatus.OK, 1, 1), ("Suzy+Stokey", HTTPStatus.OK, 2, 2)],
 )
 @pytest.mark.asyncio
 async def test_pagination_persons_search_200(
@@ -200,14 +215,12 @@ async def test_pagination_persons_search_200(
 @pytest.mark.parametrize(
     "query, status_code",
     [
-        ("?query=124563", 404),
-        ("?query=%fdskgj", 404),
+        ("?query=124563", HTTPStatus.NOT_FOUND),
+        ("?query=%fdskgj", HTTPStatus.NOT_FOUND),
     ],
 )
 @pytest.mark.asyncio
-async def test_person_search_404(
-    session_client, query, status_code
-):
+async def test_person_search_404(session_client, query, status_code):
     """Проверка крайних случаев ошибки в запросе"""
 
     request_url = (

@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 
 from ..settings import test_settings
@@ -20,7 +22,7 @@ async def test_genre_list_200(
     response_api = await http_request(
         session_client,
         request_url,
-        200,
+        HTTPStatus.OK,
     )
     response_elastic = await elastic_search_list(
         client=es_client, index=test_settings.genres_index
@@ -49,15 +51,15 @@ async def test_genre_list_200(
     [
         (
             f"{test_settings.service_url}{test_settings.genres_endpoint}?page[number]=0&page[size]=5",
-            422,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
         (
             f"{test_settings.service_url}{test_settings.genres_endpoint}?page[number]=-1&page[size]=5",
-            422,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
         (
             f"{test_settings.service_url}{test_settings.genres_endpoint}?page[number]=10&page[size]=10",
-            404,
+            HTTPStatus.NOT_FOUND,
         ),
     ],
 )
@@ -74,7 +76,11 @@ async def test_genre_list_422(session_client, response, code_result):
 
 @pytest.mark.parametrize(
     "genre_id, status_code",
-    [(GENRES[0]["id"], 200), (GENRES[1]["id"], 200), (GENRES[2]["id"], 200)],
+    [
+        (GENRES[0]["id"], HTTPStatus.OK),
+        (GENRES[1]["id"], HTTPStatus.OK),
+        (GENRES[2]["id"], HTTPStatus.OK),
+    ],
 )
 @pytest.mark.asyncio
 async def test_genre_by_id_200(
@@ -116,4 +122,4 @@ async def test_genre_by_id_404(session_client):
     response_api = await session_client.get(
         f"{test_settings.service_url}{test_settings.genres_endpoint}/bad_genre_id"
     )
-    assert response_api.status == 404
+    assert response_api.status == HTTPStatus.NOT_FOUND

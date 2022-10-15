@@ -1,8 +1,10 @@
+from http import HTTPStatus
+
 import pytest
 
 from ..settings import test_settings
-from ..utils.helpers import elastic_search_by_id, redis_get
 from ..testdata.http_exeptions import PERSON_NOT_FOUND
+from ..utils.helpers import elastic_search_by_id, redis_get
 
 
 @pytest.mark.asyncio
@@ -24,7 +26,7 @@ async def test_person(
         es_client, test_settings.persons_index, "111"
     )
     response_redis = await redis_get(redis_client, f"{url}/")
-    assert response.status == 200
+    assert response.status == HTTPStatus.OK
     assert len(body) == 1
     assert body[0]["id"] == response_elastic["id"] == response_redis[0]["id"]
     await redis_delete_fixture()
@@ -32,7 +34,7 @@ async def test_person(
 
 @pytest.mark.parametrize(
     "query_data, expected_answer",
-    [({"id": "999"}, {"status": 404, "message": PERSON_NOT_FOUND})],
+    [({"id": "999"}, {"status": HTTPStatus.NOT_FOUND, "message": PERSON_NOT_FOUND})],
 )
 @pytest.mark.asyncio
 async def test_person_not_found(
@@ -93,7 +95,7 @@ async def test_pagination_404(session_client):
         f"search?query=Ben&page[number]=2&page[size]=5"
     )
     response = await session_client.get(url)
-    assert response.status == 404
+    assert response.status == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.parametrize(
@@ -102,21 +104,17 @@ async def test_pagination_404(session_client):
         (
             f"{test_settings.service_url}{test_settings.persons_endpoint}"
             f"search?query=Ben&page[number]=0&page[size]=5",
-            422,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
         (
             f"{test_settings.service_url}{test_settings.persons_endpoint}"
             f"search?query=Ben&page[number]=-1&page[size]=5",
-            422,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
         ),
     ],
 )
 @pytest.mark.asyncio
-async def test_pagination_422(
-    session_client,
-    params,
-    status_code
-):
+async def test_pagination_422(session_client, params, status_code):
     """
     Крайние случаи получения некорректного ввода пагинации
     """
