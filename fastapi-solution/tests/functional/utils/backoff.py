@@ -1,5 +1,4 @@
 import logging
-import socket
 import time
 from functools import wraps
 from logging import Logger
@@ -60,7 +59,7 @@ def backoff(
                         f"redis соединение потеряно, следующая попытка соединения {connect_timer} sec "
                         f"Осталось попыток {connection_attempts - try_}"
                     )
-                    connect_timer = connect_timer * 2 ** factor
+                    connect_timer = connect_timer * 2**factor
                     try_ += 1
                     if connect_timer > border_sleep_time:
                         connect_timer = start_sleep_time
