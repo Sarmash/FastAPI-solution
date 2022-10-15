@@ -1,14 +1,12 @@
 import asyncio
-
+import redis
 from backoff import backoff
-
-from aioredis import Redis
 
 
 @backoff()
 async def wait_for_redis():
-    redis_client = Redis("redis://localhost")
-    if not redis_client:
+    redis_client = redis.Redis(host="redis", port=6379, db=0)
+    if not redis_client.ping():
         raise ConnectionRefusedError
 
 
