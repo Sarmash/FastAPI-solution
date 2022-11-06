@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Any
 
 import core.http_exceptions as ex
-from core.jwt_api import decode_jwt
+from core.jwt_api import decode_jwt, token_time_exited
 from db.redis import Cache
 from fastapi import APIRouter, Depends, Query, Request
 from models.filmwork import FilmWork, Forbidden
@@ -17,10 +17,8 @@ router = APIRouter()
 
 @router.get(
     "/{film_id}",
-    responses={HTTPStatus.FORBIDDEN.value:
-                   {"model": Forbidden},
-               HTTPStatus.OK.value:
-                   {"model": FilmWork}},
+    responses={HTTPStatus.FORBIDDEN.value: {"model": Forbidden},
+               HTTPStatus.OK.value: {"model": FilmWork}},
     summary="Возвращает данные по фильму",
     description="Возвращает название фильма, рейтинг, описание,"
     "жанр(ы), список актеров, сценаристов и режиссеров",
@@ -32,7 +30,8 @@ async def film_details(
     service: FilmService = Depends(get_film_service),
     token: str | None = Header(default=None)
 ) -> FilmWork:
-    """Эндпоинт - /api/v1/films/{film_id} - возвращающий данные по фильму"""
+    """Эндпоинт - /api/v1/films/{film_id} - возвращающий данные по фильму
+    С учетом прав доступа пользователя который запрашивает фильм"""
 
     film = await service.get_by_id(film_id)
     if not film:
@@ -42,12 +41,14 @@ async def film_details(
         if not token_data:
             if film.permission == Permissions.All_value.value:
                 return film
+        if token_time_exited(token_data):
+            return Forbidden(response="token outdated")
         else:
             user_permission = Permissions.get_permission_value(token_data.get("role"))
             film_permission = Permissions.get_permission_value(film.permission)
             if user_permission >= film_permission:
                 return film
-            return Forbidden(response="forbidden")
+            return Forbidden(response="wrong permission user")
     return film
 
 

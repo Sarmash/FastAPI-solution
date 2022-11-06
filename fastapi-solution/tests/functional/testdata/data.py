@@ -32,6 +32,7 @@ MOVIES = [
             {"id": "b258f144-d771-4fa2-b6a2-42805c13ce4a", "name": "Sandy Brooke"},
             {"id": "f51f4731-3c26-4a72-9d68-cd0cd3d90a26", "name": "Ross Hagen"},
         ],
+        "permission": "all",
         "actors_names": ["Suzy Stokey", "Marya Gant", "Sandy Brooke", "Ross Hagen"],
         "description": "Two women who have been unjustly confined to a prison planet plot their escape, "
         "all the while having to put up with lesbian guards, crazed wardens and mutant rodents.",
@@ -59,6 +60,7 @@ MOVIES = [
             },
             {"id": "ccf38643-1f0a-4b04-bcb5-dd27dde321f6", "name": "Clive Revill"},
         ],
+        "permission": "user",
         "actors_names": ["Suzy Stokey", "Erik Bauersfeld", "Clive Revill"],
         "description": "Be a Rebel pilot during the Galactic Civil War. "
         "Fly the most famous Star Wars starfighters in furious battles against Imperial pilots.",
@@ -93,6 +95,7 @@ MOVIES = [
             "Steven Adler",
             "Gilby Clarke",
         ],
+        "permission": "all",
         "description": "A biography of Axl Rose.",
         "director": "Angela Turner",
         "genre": ["Music", "Documentary", "Biography"],
@@ -123,6 +126,7 @@ MOVIES = [
             "Barbara Hale",
             "Alexandra Paul",
         ],
+        "permission": "subscriber",
         "description": "Thatcher Horton is owner of a Denver sports arena and a couple of sports teams. "
         "Bobby Spencer a friend of Ken was one of his hockey players."
         " It seems that Horton verbally promised him that he would take care of him "
@@ -175,6 +179,7 @@ MOVIES = [
             "Americus Abesamis",
             "Christina Applegate",
         ],
+        "permission": "all",
         "description": None,
         "director": "Adam Shankman",
         "genre": ["Music"],
@@ -227,6 +232,7 @@ MOVIES = [
             "Tim Allen",
             "Nicole Sullivan",
         ],
+        "permission": "user",
         "description": "After a successful mission in which his partner, Warp Darkmatter, "
         "fell in battle, Buzz Lightyear vows never to put another partner at "
         "risk and works solo. This vow, however is challenged by Star Command who assigns "
@@ -272,6 +278,7 @@ MOVIES = [
             "Billy Dee Williams",
             "Carrie Fisher",
         ],
+        "permission": "subscriber",
         "description": "Luke Skywalker battles horrible Jabba the Hut and cruel"
         " Darth Vader to save his comrades in the Rebel Alliance and triumph over "
         "the Galactic Empire. Han Solo and Princess Leia reaffirm their love and team"
@@ -332,6 +339,7 @@ MOVIES = [
             "Coleen Gray",
             "John Agar",
         ],
+        "permission": "all",
         "description": "The sheriff of Gunlock is planning to hang Sam Hall,"
         " who shot three farmers found on cattle land, at sundown."
         " At the casino, betting is 8 to 3 he won't make it. The cattlemen are"
@@ -355,6 +363,7 @@ MOVIES = [
         "title": "The Star",
         "imdb_rating": 9.0,
         "description": "New World",
+        "permission": "all",
         "genre": ["Action"],
         "actors": [
             {"id": "111", "name": "Ann"},
