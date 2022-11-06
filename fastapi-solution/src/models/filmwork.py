@@ -14,6 +14,7 @@ class FilmWork(BasicModel):
     actors: list = []
     writers: list = []
     director: Optional[str]
+    permission: Optional[str]
 
 
 class FilmWorkOut(BasicModel):
@@ -22,3 +23,9 @@ class FilmWorkOut(BasicModel):
     id: str
     title: str
     imdb_rating: Optional[float]
+
+
+class Forbidden(BasicModel):
+    """Модель ответа для клиента без доступа к запрашиваемому фильму"""
+
+    response: str
