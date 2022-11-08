@@ -4,12 +4,12 @@ from typing import Any
 import core.http_exceptions as ex
 from core.jwt_api import decode_jwt, token_time_exited
 from db.redis import Cache
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, security
 from models.filmwork import FilmWork, Forbidden
 from services.filmwork import FilmService, get_film_service
 from services.genre import GenreService, get_genre_service
 from services.service_base import Filter, Paginator
-from fastapi import Header, HTTPException
+from fastapi import HTTPException
 from core.permissions import Permissions
 
 router = APIRouter()
@@ -28,7 +28,8 @@ async def film_details(
     request: Request,
     film_id: str,
     service: FilmService = Depends(get_film_service),
-    token: str | None = Header(default=None)
+    token: security.HTTPAuthorizationCredentials = Depends(
+        security.HTTPBearer(bearerFormat='Bearer', auto_error=False))
 ) -> FilmWork:
     """Эндпоинт - /api/v1/films/{film_id} - возвращающий данные по фильму
     С учетом прав доступа пользователя который запрашивает фильм"""
@@ -37,19 +38,22 @@ async def film_details(
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.FILM_NOT_FOUND)
     if token:
+        token = token.credentials
         token_data = decode_jwt(token)
         if not token_data:
             if film.permission == Permissions.All_value.value:
                 return film
         if token_time_exited(token_data):
-            return Forbidden(response="token outdated")
+            raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail=ex.TOKEN_OUTDATED)
         else:
             user_permission = Permissions.get_permission_value(token_data.get("role"))
             film_permission = Permissions.get_permission_value(film.permission)
             if user_permission >= film_permission:
                 return film
-            return Forbidden(response="wrong permission user")
-    return film
+            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail=ex.WRONG_PERMISSION)
+    if film.permission == Permissions.All.value:
+        return film
+    raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail=ex.WRONG_PERMISSION)
 
 
 @router.get(
