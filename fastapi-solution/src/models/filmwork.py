@@ -29,3 +29,21 @@ class Forbidden(BasicModel):
     """Модель ответа для клиента без доступа к запрашиваемому фильму"""
 
     response: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "response": "wrong permission user"
+            }
+        }
+
+
+class Unauthorized(Forbidden):
+    """Модель ответа для клиента с истекшим временем токена"""
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "response": "token outdated"
+            }
+        }

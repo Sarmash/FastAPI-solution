@@ -5,7 +5,7 @@ import core.http_exceptions as ex
 from core.jwt_api import decode_jwt, token_time_exited
 from db.redis import Cache
 from fastapi import APIRouter, Depends, Query, Request, security
-from models.filmwork import FilmWork, Forbidden
+from models.filmwork import FilmWork, Forbidden, Unauthorized
 from services.filmwork import FilmService, get_film_service
 from services.genre import GenreService, get_genre_service
 from services.service_base import Filter, Paginator
@@ -18,10 +18,12 @@ router = APIRouter()
 @router.get(
     "/{film_id}",
     responses={HTTPStatus.FORBIDDEN.value: {"model": Forbidden},
-               HTTPStatus.OK.value: {"model": FilmWork}},
+               HTTPStatus.OK.value: {"model": FilmWork},
+               HTTPStatus.UNAUTHORIZED.value: {"model": Unauthorized}},
     summary="Возвращает данные по фильму",
     description="Возвращает название фильма, рейтинг, описание,"
-    "жанр(ы), список актеров, сценаристов и режиссеров",
+    "жанр(ы), список актеров, сценаристов и режиссеров"
+                "в зависимости от уровня доступа пользователя",
 )
 @Cache()
 async def film_details(

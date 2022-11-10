@@ -2,6 +2,8 @@ import enum
 
 
 class Permissions(enum.Enum):
+    """Уровни доступа фильмов,
+    каждому уровню соответствует число для определения доступа"""
     All = "all"
     All_value = 1
     User = "user"
