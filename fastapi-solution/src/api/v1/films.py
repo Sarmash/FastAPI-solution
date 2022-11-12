@@ -2,32 +2,60 @@ from http import HTTPStatus
 from typing import Any
 
 import core.http_exceptions as ex
+from core.jwt_api import decode_jwt, token_time_exited
 from db.redis import Cache
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from models.filmwork import FilmWork
+from fastapi import APIRouter, Depends, Query, Request, security
+from models.filmwork import FilmWork, Forbidden, Unauthorized
 from services.filmwork import FilmService, get_film_service
 from services.genre import GenreService, get_genre_service
 from services.service_base import Filter, Paginator
+from fastapi import HTTPException
+from core.permissions import Permissions
 
 router = APIRouter()
 
 
 @router.get(
     "/{film_id}",
-    response_model=FilmWork,
+    responses={HTTPStatus.FORBIDDEN.value: {"model": Forbidden},
+               HTTPStatus.OK.value: {"model": FilmWork},
+               HTTPStatus.UNAUTHORIZED.value: {"model": Unauthorized}},
     summary="Возвращает данные по фильму",
     description="Возвращает название фильма, рейтинг, описание,"
-    "жанр(ы), список актеров, сценаристов и режиссеров",
+    "жанр(ы), список актеров, сценаристов и режиссеров"
+                "в зависимости от уровня доступа пользователя",
 )
 @Cache()
 async def film_details(
-    request: Request, film_id: str, service: FilmService = Depends(get_film_service)
+    request: Request,
+    film_id: str,
+    service: FilmService = Depends(get_film_service),
+    token: security.HTTPAuthorizationCredentials = Depends(
+        security.HTTPBearer(bearerFormat='Bearer', auto_error=False))
 ) -> FilmWork:
-    """Эндпоинт - /api/v1/films/{film_id} - возвращающий данные по фильму"""
+    """Эндпоинт - /api/v1/films/{film_id} - возвращающий данные по фильму
+    С учетом прав доступа пользователя который запрашивает фильм"""
+
     film = await service.get_by_id(film_id)
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.FILM_NOT_FOUND)
-    return film
+    if token:
+        token = token.credentials
+        token_data = decode_jwt(token)
+        if not token_data:
+            if film.permission == Permissions.All_value.value:
+                return film
+        if token_time_exited(token_data):
+            raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail=ex.TOKEN_OUTDATED)
+        else:
+            user_permission = Permissions.get_permission_value(token_data.get("role"))
+            film_permission = Permissions.get_permission_value(film.permission)
+            if user_permission >= film_permission:
+                return film
+            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail=ex.WRONG_PERMISSION)
+    if film.permission == Permissions.All.value:
+        return film
+    raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail=ex.WRONG_PERMISSION)
 
 
 @router.get(

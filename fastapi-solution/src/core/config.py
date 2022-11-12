@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     redis_port: int = Field(6379, env="REDIS_PORT")
 
     redis_cache_expire_in_seconds: int = 60 * 3
+    jwt_key: str = Field("access_key")
 
 
 default_settings = Settings()
