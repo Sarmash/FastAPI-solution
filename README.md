@@ -20,6 +20,8 @@ https://github.com/Woodsst/Auth_sprint_1
 если пользователь не имеет необходимого уровня доступа, данные ему не показываются.
 В случае если jwt пользователя истек, подразумевается, что фронт перенаправляет пользователя в Auth сервис для обновления токена.
 
+endpoint : https://github.com/Sarmash/FastAPI-solution/blob/master/fastapi-solution/src/api/v1/films.py#L29
+
 ### Технологии:
 - Код приложения написан на Python + FastAPI
 - Приложение запускается под управлением сервера ASGI(uvicorn)
