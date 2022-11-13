@@ -2,7 +2,6 @@ from http import HTTPStatus
 from typing import Any
 
 import core.http_exceptions as ex
-from core.jwt_api import decode_jwt, token_time_exited
 from db.redis import Cache
 from fastapi import APIRouter, Depends, Query, Request, security
 from models.filmwork import FilmWork, Forbidden, Unauthorized
@@ -10,7 +9,7 @@ from services.filmwork import FilmService, get_film_service
 from services.genre import GenreService, get_genre_service
 from services.service_base import Filter, Paginator
 from fastapi import HTTPException
-from core.permissions import Permissions
+from core.permissions import permissions, Permissions
 
 router = APIRouter()
 
@@ -26,6 +25,7 @@ router = APIRouter()
                 "в зависимости от уровня доступа пользователя",
 )
 @Cache()
+@permissions(permission=Permissions.User)
 async def film_details(
     request: Request,
     film_id: str,
@@ -39,23 +39,7 @@ async def film_details(
     film = await service.get_by_id(film_id)
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=ex.FILM_NOT_FOUND)
-    if token:
-        token = token.credentials
-        token_data = decode_jwt(token)
-        if not token_data:
-            if film.permission == Permissions.All_value.value:
-                return film
-        if token_time_exited(token_data):
-            raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail=ex.TOKEN_OUTDATED)
-        else:
-            user_permission = Permissions.get_permission_value(token_data.get("role"))
-            film_permission = Permissions.get_permission_value(film.permission)
-            if user_permission >= film_permission:
-                return film
-            raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail=ex.WRONG_PERMISSION)
-    if film.permission == Permissions.All.value:
-        return film
-    raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail=ex.WRONG_PERMISSION)
+    return film
 
 
 @router.get(
@@ -64,6 +48,7 @@ async def film_details(
     description="Возвращает список популярных фильмов c названием и рейтингом",
 )
 @Cache()
+@permissions(permission=Permissions.All)
 async def related_films(
     request: Request,
     sort: str = Query(
@@ -73,6 +58,8 @@ async def related_films(
     paginator: Paginator = Depends(),
     service: FilmService = Depends(get_film_service),
     genre_service: GenreService = Depends(get_genre_service),
+    token: security.HTTPAuthorizationCredentials = Depends(
+        security.HTTPBearer(bearerFormat='Bearer', auto_error=False))
 ) -> list:
     """Эндпоинт - /api/v1/films/ - возвращающий список фильмов постранично
     - /films/?sort=-imdb_rating&page_size=50&page_number=1 - для запроса по кол-ву фильмов и странице
@@ -102,11 +89,14 @@ async def related_films(
     description="Возвращает список фильмов оп поиску c названием и рейтингом",
 )
 @Cache()
+@permissions(permission=Permissions.All)
 async def search_films(
     request: Request,
     query: Any = Query(..., description="What movie are we looking for?"),
     paginator: Paginator = Depends(),
     service: FilmService = Depends(get_film_service),
+    token: security.HTTPAuthorizationCredentials = Depends(
+        security.HTTPBearer(bearerFormat='Bearer', auto_error=False))
 ) -> list:
     """Эндпоинт - /api/v1/films/search/ - возвращающий страницу поиска фильмов,
     - /search/?query=star&page_size=50&page_number=1 - для запроса по слову "star" """
